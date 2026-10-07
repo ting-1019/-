@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#008080">
+<title>旧城论坛 · 寻人启事</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"宋体",SimSun,"MS Song","Microsoft YaHei",monospace;
+  font-size:12px;background:#008080;overflow:hidden;user-select:none;
+  -webkit-tap-highlight-color:transparent;-webkit-font-smoothing:none;
+}
+
+/* 开机 */
+#boot{
+  position:fixed;inset:0;z-index:10000;background:#000;color:#c8c8c8;
+  font-family:"Courier New",monospace;font-size:13px;line-height:1.55;
+  padding:26px 30px;white-space:pre;overflow:hidden;
+  transition:opacity .6s ease;
+}
+#boot.hide{opacity:0;pointer-events:none}
+
+/* 桌面 */
+#stage{
+  position:fixed;inset:0 0 28px 0;display:flex;align-items:center;justify-content:center;
+  padding:10px;overflow:auto;
+  background:radial-gradient(ellipse at 50% 35%, rgba(255,255,255,.10), transparent 62%),
+    linear-gradient(180deg,#0a8c8c 0%,#006a6a 100%);
+}
+
+/* 窗口 */
+.window{
+  width:900px;max-width:100%;height:96%;max-height:700px;
+  display:flex;flex-direction:column;
+  background:#c0c0c0;border:2px solid;
+  border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:1px 1px 0 #808080, 5px 5px 16px rgba(0,0,0,.45);
+}
+.titlebar{
+  height:23px;margin:2px 2px 0;flex:0 0 auto;
+  background:linear-gradient(90deg,#000080 0%,#1084d0 100%);
+  display:flex;align-items:center;padding:0 3px 0 5px;
+  color:#fff;font-weight:bold;font-size:12px;letter-spacing:.4px;
+}
+.title-ico{
+  width:14px;height:14px;margin-right:5px;background:#c0c0c0;
+  border:1px solid #000;display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:#000;font-weight:bold;flex:0 0 auto;
+}
+.title-text{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.tbtn{
+  width:16px;height:14px;margin-left:2px;padding:0;background:#c0c0c0;
+  border:1px solid;border-color:#fff #000 #000 #fff;
+  font-family:inherit;font-size:9px;line-height:1;color:#000;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.tbtn:active{border-color:#000 #fff #fff #000}
+.menubar{
+  display:flex;gap:1px;padding:1px 3px 2px;flex:0 0 auto;
+  border-bottom:1px solid #808080;
+}
+.menubar span{padding:2px 8px;cursor:default;font-size:12px}
+.menubar span:hover{background:#000080;color:#fff}
+
+/* 工具栏 */
+.toolbar{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  padding:4px 6px;border-bottom:1px solid #808080;
+  background:#c0c0c0;flex:0 0 auto;
+}
+.tb-btn{
+  height:24px;padding:0 9px;background:#c0c0c0;
+  border:2px solid;border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
+  font-family:inherit;font-size:11.5px;color:#000;cursor:pointer;
+  display:flex;align-items:center;gap:4px;white-space:nowrap;
+}
+.tb-btn:active{border-color:#000 #dfdfdf #dfdfdf #000;box-shadow:inset 1px 1px 0 #808080}
+.tb-btn:disabled{color:#888;text-shadow:1px 1px 0 #fff;cursor:default}
+.tb-sep{width:2px;height:20px;border-left:1px solid #808080;border-right:1px solid #fff}
+.search-wrap{
+  flex:1;min-width:160px;display:flex;gap:4px;align-items:center;
+}
+.search-wrap input{
+  flex:1;min-width:80px;height:24px;padding:0 7px;
+  font-family:inherit;font-size:12px;color:#000;background:#fff;
+  border:2px solid;border-color:#808080 #fff #fff #808080;
+  box-shadow:inset 1px 1px 0 #000;outline:none;border-radius:0;
+}
+.search-wrap input:focus{background:#ffffcc}
+.search-wrap button{
+  height:24px;padding:0 10px;background:#c0c0c0;
+  border:2px solid;border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
+  font-family:inherit;font-size:11.5px;cursor:pointer;color:#000;
+}
+.search-wrap button:active{border-color:#000 #dfdfdf #dfdfdf #000;box-shadow:inset 1px 1px 0 #808080}
+
+/* 主体 */
+.main{
+  flex:1;overflow:auto;margin:4px;
+  background:#fff;border:2px solid;
+  border-color:#808080 #fff #fff #808080;
+  box-shadow:inset 1px 1px 0 #000;
+}
+.view{display:none}
+.view.on{display:block}
+
+/* 论坛首页 */
+.forum-banner{
+  background:linear-gradient(180deg,#f0f0f0,#d8d8d8);
+  border-bottom:2px solid #a8a8a8;
+  padding:12px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.forum-logo{
+  font-size:18px;font-weight:bold;color:#000080;
+  letter-spacing:2px;
+}
+.forum-logo span{color:#a00000}
+.forum-sub{font-size:11px;color:#666;margin-top:2px}
+.forum-stats{font-size:11px;color:#666;text-align:right;line-height:1.6}
+
+.forum-nav{
+  display:flex;gap:1px;padding:4px 6px;background:#e8e8e8;
+  border-bottom:1px solid #a8a8a8;flex-wrap:wrap;
+}
+.nav-link{
+  padding:3px 10px;font-size:11.5px;color:#000080;
+  cursor:pointer;border:1px solid transparent;
+}
+.nav-link:hover{background:#d8e8ff;border-color:#a8c8e8}
+.nav-link.cur{background:#000080;color:#fff;border-color:#000080}
+
+.forum-board-title{
+  background:#e0e0e0;padding:5px 10px;
+  font-size:12px;font-weight:bold;color:#000080;
+  border-bottom:1px solid #a8a8a8;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.post-list{padding:0}
+.post-row{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-bottom:1px solid #e0e0e0;cursor:pointer;
+}
+.post-row:hover{background:#f4f8ff}
+.post-row.hot{background:#fff8e8}
+.post-row.hot:hover{background:#fff0d0}
+.post-icon{
+  width:26px;height:26px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;border:1px solid #a8a8a8;background:#f0f0f0;
+}
+.post-main{flex:1;min-width:0}
+.post-title{
+  font-size:12.5px;color:#000080;font-weight:bold;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+  margin-bottom:2px;
+}
+.post-row:hover .post-title{text-decoration:underline}
+.post-meta{font-size:10.5px;color:#888;font-family:"Courier New",monospace}
+.post-meta b{color:#a00000;font-weight:bold}
+.post-count{
+  flex:0 0 auto;text-align:right;font-size:10.5px;
+  color:#888;font-family:"Courier New",monospace;line-height:1.5;
+}
+.post-count b{color:#000080;font-weight:bold}
+
+.empty-tip{
+  padding:40px 20px;text-align:center;color:#888;
+  font-size:12px;line-height:1.8;
+}
+.empty-tip b{color:#000080}
+
+/* 帖子详情 */
+.thread-header{
+  padding:10px 14px;background:#f0f0f0;
+  border-bottom:2px solid #a8a8a8;
+}
+.thread-title{
+  font-size:14px;font-weight:bold;color:#000080;
+  margin-bottom:5px;line-height:1.4;
+}
+.thread-info{
+  font-size:10.5px;color:#888;
+  font-family:"Courier New",monospace;line-height:1.6;
+}
+.thread-info b{color:#a00000}
+
+.floor{
+  display:flex;gap:10px;padding:12px 14px;
+  border-bottom:1px solid #e0e0e0;
+}
+.floor.op{background:#fffdf0}
+.floor-avatar{
+  flex:0 0 44px;width:44px;height:44px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:bold;color:#fff;
+  border:1px solid #404040;
+}
+.floor-avatar.a1{background:#c08060}
+.floor-avatar.a2{background:#6080c0}
+.floor-avatar.a3{background:#80a060}
+.floor-avatar.a4{background:#a060a0}
+.floor-avatar.a5{background:#a0a060}
+.floor-body{flex:1;min-width:0}
+.floor-head{
+  display:flex;align-items:baseline;gap:8px;
+  margin-bottom:5px;flex-wrap:wrap;
+}
+.floor-name{
+  font-size:12px;color:#000080;font-weight:bold;cursor:pointer;
+}
+.floor-name:hover{text-decoration:underline;color:#a00000}
+.floor-name.me{color:#a00000}
+.floor-badge{
+  font-size:9px;padding:1px 5px;background:#e8e8e8;
+  border:1px solid #a8a8a8;color:#666;
+}
+.floor-badge.op{background:#fff0c0;border-color:#d8b840;color:#806020}
+.floor-time{
+  font-size:10px;color:#999;font-family:"Courier New",monospace;
+  margin-left:auto;
+}
+.floor-text{
+  font-size:12.5px;line-height:1.75;color:#222;
+  white-space:pre-wrap;word-break:break-word;
+}
+.floor-text b{color:#a00000}
+.floor-text .quote{
+  display:block;background:#f0f0f0;border-left:3px solid #a8a8a8;
+  padding:6px 9px;margin:5px 0;font-size:11.5px;color:#555;
+}
+.thread-actions{
+  padding:10px 14px;background:#f0f0f0;
+  border-top:1px solid #a8a8a8;
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+
+/* 个人资料 */
+.profile-wrap{padding:16px 18px}
+.profile-head{
+  display:flex;gap:16px;align-items:flex-start;
+  padding-bottom:14px;border-bottom:1px solid #e0e0e0;
+  margin-bottom:14px;
+}
+.profile-avatar{
+  flex:0 0 80px;width:80px;height:80px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:32px;font-weight:bold;color:#fff;
+  border:2px solid #404040;
+  background:#80a060;
+}
+.profile-info{flex:1;min-width:0}
+.profile-name{
+  font-size:16px;font-weight:bold;color:#000080;margin-bottom:4px;
+}
+.profile-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.profile-tag{
+  font-size:10px;padding:1px 6px;background:#e8e8e8;
+  border:1px solid #a8a8a8;color:#666;
+}
+.profile-table{width:100%;border-collapse:collapse;font-size:12px}
+.profile-table td{padding:3.5px 4px;line-height:1.55;word-break:break-all}
+.profile-table td.k{color:#666;width:80px;white-space:nowrap}
+.profile-table tr.line td{border-bottom:1px dotted #d8d8d8}
+.profile-sign{
+  margin-top:14px;padding:12px 14px;
+  background:#fdf8e8;border:1px solid #d8c880;
+  font-family:"KaiTi","STKaiti",serif;font-size:15px;
+  color:#5a3a00;line-height:1.7;text-align:center;
+  border-radius:2px;
+}
+.profile-sign-label{
+  font-size:10.5px;color:#888;text-align:center;
+  margin-bottom:6px;font-family:inherit;letter-spacing:1px;
+}
+.profile-actions{
+  margin-top:16px;padding-top:14px;
+  border-top:1px solid #e0e0e0;
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+
+/* 邮件撰写 */
+.mail-wrap{padding:16px 18px}
+.mail-head{
+  background:#f0f0f0;padding:8px 12px;border:1px solid #a8a8a8;
+  font-size:11.5px;line-height:2;margin-bottom:12px;
+}
+.mail-head b{color:#000080;display:inline-block;width:60px}
+.mail-body-input{
+  width:100%;min-height:120px;padding:10px 12px;
+  font-family:"宋体",SimSun,monospace;font-size:12.5px;
+  color:#000;background:#fff;line-height:1.7;
+  border:2px solid;border-color:#808080 #fff #fff #808080;
+  box-shadow:inset 1px 1px 0 #000;outline:none;border-radius:0;
+  resize:vertical;
+}
+.mail-body-input:focus{background:#ffffcc}
+.mail-hint{
+  margin:8px 0 12px;font-size:11.5px;color:#666;line-height:1.65;
+}
+.mail-hint b{color:#a00000}
+.mail-actions{display:flex;gap:8px;flex-wrap:wrap}
+.mail-msg{margin-top:8px;font-size:12px;line-height:1.6;min-height:16px}
+.mail-msg.err{color:#a00000}
+.mail-msg.ok{color:#006000}
+
+/* 状态栏 */
+.statusbar{
+  display:flex;gap:2px;padding:0 4px 4px;flex:0 0 auto;
+}
+.status-cell{
+  padding:2px 7px;border:1px solid;
+  border-color:#808080 #fff #fff #808080;background:#c0c0c0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11.5px;
+}
+.status-cell:first-child{flex:1;min-width:0}
+.status-cell.fix{flex:0 0 auto;color:#000080}
+
+/* 任务栏 */
+.taskbar{
+  position:fixed;left:0;right:0;bottom:0;height:28px;z-index:200;
+  background:#c0c0c0;border-top:2px solid #dfdfdf;
+  display:flex;align-items:center;padding:2px;gap:4px;
+}
+.start-btn{
+  height:22px;padding:0 9px 0 6px;display:flex;align-items:center;gap:5px;
+  background:#c0c0c0;border:2px solid;border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
+  font-family:inherit;font-size:12px;font-weight:bold;cursor:pointer;flex:0 0 auto;
+}
+.start-btn:active{border-color:#000 #dfdfdf #dfdfdf #000;box-shadow:inset 1px 1px 0 #808080}
+.start-ico{
+  width:13px;height:13px;
+  background:linear-gradient(135deg,#ff0000 0 33%,#00a000 33% 66%,#0000e0 66% 100%);
+  border:1px solid #000;
+}
+.task-sep{width:2px;height:20px;border-left:1px solid #808080;border-right:1px solid #fff}
+.task-item{
+  flex:1;min-width:0;height:22px;display:flex;align-items:center;padding:0 8px;
+  background:#c0c0c0;border:2px solid;border-color:#808080 #fff #fff #808080;
+  box-shadow:inset 1px 1px 0 #000;font-size:11.5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.tray{
+  flex:0 0 auto;height:22px;display:flex;align-items:center;gap:6px;
+  padding:0 9px;border:1px solid;border-color:#808080 #fff #fff #808080;
+  font-size:11.5px;font-family:"Courier New",monospace;
+}
+.tray-dot{width:9px;height:9px;border-radius:50%;background:#00a000;box-shadow:0 0 4px #00c000}
+
+/* CRT */
+#crt{
+  position:fixed;inset:0;z-index:9000;pointer-events:none;
+  background:repeating-linear-gradient(0deg,
+    rgba(0,0,0,.13) 0px, rgba(0,0,0,.13) 1px,
+    transparent 1px, transparent 3px);
+  animation:flick 5s infinite;
+}
+#crt::before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(ellipse at center, transparent 52%, rgba(0,0,0,.38) 100%);
+}
+@keyframes flick{0%,95%,100%{opacity:1}96%{opacity:.90}97%{opacity:.98}98%{opacity:.93}}
+
+/* 进度 */
+#mask{
+  position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.3);
+  display:none;align-items:center;justify-content:center;padding:16px;
+}
+#mask.on{display:flex}
+.dialog{
+  width:360px;max-width:100%;background:#c0c0c0;
+  border:2px solid;border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:2px 2px 0 #808080, 6px 6px 18px rgba(0,0,0,.5);
+}
+.dlg-body{padding:16px 18px 18px}
+.dlg-msg{font-size:12.5px;margin-bottom:12px;line-height:1.6;min-height:20px;font-family:"Courier New",monospace}
+.progress{
+  height:18px;width:100%;background:#c0c0c0;border:2px solid;
+  border-color:#808080 #fff #fff #808080;
+  box-shadow:inset 1px 1px 0 #000;padding:2px;
+}
+.progress .bar{
+  height:100%;width:0%;
+  background:repeating-linear-gradient(90deg,#000080 0 9px,#c0c0c0 9px 11px);
+  transition:width .35s ease;
+}
+
+/* 结局 */
+#ending{
+  position:fixed;inset:0;z-index:800;background:#000;
+  display:none;align-items:center;justify-content:center;padding:24px;
+  text-align:center;
+}
+#ending.on{display:flex}
+.ending-box{
+  max-width:560px;color:#c8c8c8;
+  font-family:"Kaiti","STKaiti",serif;
+  font-size:17px;line-height:2.1;letter-spacing:2px;
+}
+.ending-box .e-line{opacity:0;transform:translateY(6px);
+  transition:opacity 1.1s ease, transform 1.1s ease}
+.ending-box .e-line.on{opacity:1;transform:translateY(0)}
+.ending-box .e-big{
+  font-size:26px;color:#f0f0f0;letter-spacing:6px;
+  margin:18px 0;
+}
+.ending-box .e-small{font-size:13px;color:#888;letter-spacing:1px}
+
+/* 移动端 */
+@media (max-width:640px){
+  .window{height:auto;max-height:none;margin:8px 0}
+  .forum-banner{flex-direction:column;align-items:flex-start;gap:6px}
+  .forum-stats{text-align:left}
+  .floor{gap:8px;padding:10px}
+  .floor-avatar{flex:0 0 34px;width:34px;height:34px;font-size:13px}
+  .floor-text{font-size:12px}
+  .profile-head{flex-direction:column;align-items:center;text-align:center}
+  .profile-table td.k{width:70px}
+  .ending-box{font-size:15px;line-height:1.95}
+  .ending-box .e-big{font-size:22px}
+  .post-row{gap:6px;padding:8px 9px}
+  .post-icon{width:22px;height:22px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<div id="boot"></div>
+
+<div id="stage">
+  <div class="window">
+    <div class="titlebar">
+      <div class="title-ico">坛</div>
+      <div class="title-text">旧城论坛 · 生活 · 往事 · 寻人启事</div>
+      <button class="tbtn">_</button>
+      <button class="tbtn">□</button>
+      <button class="tbtn">×</button>
+    </div>
+
+    <div class="menubar">
+      <span>文件(F)</span><span>编辑(E)</span><span>查看(V)</span>
+      <span>收藏(A)</span><span>工具(T)</span><span>帮助(H)</span>
+    </div>
+
+    <div class="toolbar">
+      <button class="tb-btn" id="btnHome">⌂ 论坛首页</button>
+      <button class="tb-btn" id="btnBack" disabled>◀ 返回</button>
+      <div class="tb-sep"></div>
+      <div class="search-wrap">
+        <input id="searchInput" type="text"
+               placeholder="搜索帖子、用户名或关键词 ..." autocomplete="off">
+        <button id="btnSearch">搜 索</button>
+      </div>
+    </div>
+
+    <div class="main" id="mainBox">
+
+      <!-- ========== 视图 1：帖子列表 ========== -->
+      <div class="view on" id="viewList">
+        <div class="forum-banner">
+          <div>
+            <div class="forum-logo">旧城<span>论坛</span></div>
+            <div class="forum-sub">bbs.oldcity.local · 生活 · 往事 · 寻人启事</div>
+          </div>
+          <div class="forum-stats">
+            今日：128 帖　|　会员：3,204　|　在线：17<br>
+            最后更新：2024-04-06 07:07
+          </div>
+        </div>
+
+        <div class="forum-nav">
+          <span class="nav-link">首页</span>
+          <span class="nav-link">生活</span>
+          <span class="nav-link">往事</span>
+          <span class="nav-link cur">寻人启事</span>
+          <span class="nav-link">旧照</span>
+          <span class="nav-link">闲置</span>
+        </div>
+
+        <div class="forum-board-title">
+          <span>寻人启事 · 共 1 条匹配结果</span>
+          <span style="font-size:10.5px;color:#888;font-weight:normal">按最后回复排序</span>
+        </div>
+
+        <div class="post-list" id="postList"></div>
+      </div>
+
+      <!-- ========== 视图 2：帖子详情 ========== -->
+      <div class="view" id="viewThread">
+        <div class="thread-header">
+          <div class="thread-title" id="threadTitle"></div>
+          <div class="thread-info" id="threadInfo"></div>
+        </div>
+        <div id="threadFloors"></div>
+        <div class="thread-actions">
+          <button class="tb-btn" id="btnToMail">✉ 给「默」写一封邮件</button>
+        </div>
+      </div>
+
+      <!-- ========== 视图 3：个人资料 ========== -->
+      <div class="view" id="viewProfile">
+        <div class="profile-wrap">
+          <div class="profile-head">
+            <div class="profile-avatar" id="pAvatar">?</div>
+            <div class="profile-info">
+              <div class="profile-name" id="pName"></div>
+              <div class="profile-tags" id="pTags"></div>
+            </div>
+          </div>
+          <table class="profile-table" id="pTable"></table>
+
+          <div class="profile-sign-label">— 个人签名 —</div>
+          <div class="profile-sign" id="pSign"></div>
+
+          <div class="profile-actions">
+            <button class="tb-btn" id="btnToMailFromProfile">✉ 给「默」写一封邮件</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== 视图 4：写邮件 ========== -->
+      <div class="view" id="viewMail">
+        <div class="mail-wrap">
+          <div class="mail-head">
+            <div><b>收件人：</b>chenmo_0608@oldcity.mail</div>
+            <div><b>主　题：</b>关于那台相机</div>
+            <div><b>发送时间：</b>2024-04-06 07:07</div>
+          </div>
+          <textarea class="mail-body-input" id="mailBody"
+            placeholder="请写下你想对「默」说的话 ..."></textarea>
+          <div class="mail-hint">
+            <b>提示：</b>把你在论坛里发现的、关于「小雨」的那个最重要的信息，
+            写进这封邮件的正文。只需包含<b>两个字</b>即可。
+          </div>
+          <div class="mail-actions">
+            <button class="tb-btn" id="btnSend">▶ 发 送</button>
+            <button class="tb-btn" id="btnBackFromMail">◀ 返回</button>
+          </div>
+          <div class="mail-msg" id="mailMsg"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="statusbar">
+      <div class="status-cell" id="statusText">就绪。欢迎来到旧城论坛。</div>
+      <div class="status-cell fix" id="pageInfo">寻人启事</div>
+      <div class="status-cell fix">在线 17 人</div>
+    </div>
+  </div>
+</div>
+
+<!-- 结局 -->
+<div id="ending">
+  <div class="ending-box" id="endingBox"></div>
+</div>
+
+<!-- 进度 -->
+<div id="mask">
+  <div class="dialog">
+    <div class="titlebar">
+      <div class="title-ico">▶</div>
+      <div class="title-text">正在处理 ...</div>
+    </div>
+    <div class="dlg-body">
+      <div class="dlg-msg" id="dlgMsg">正在发送 ...</div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="taskbar">
+  <button class="start-btn" onclick="return false;">
+    <span class="start-ico"></span>开始
+  </button>
+  <div class="task-sep"></div>
+  <div class="task-item" id="taskText">旧城论坛 · 寻人启事</div>
+  <div class="tray">
+    <span class="tray-dot"></span>
+    <span id="clock">--:--</span>
+  </div>
+</div>
+
+<div id="crt"></div>
+
+<script>
+/* ==========================================================
+   配置区
+   ========================================================== */
+/* 最终答案：包含这两个字即可 */
+var FINAL_ANSWERS = ['等你', '我等你', '我在第七站等你', '第七站'];
+
+/* 触发帖子的关键词 */
+var TRIGGER_KEYS = ['周予安', '旧城三中', '相机', '高三', '2018', '寻人', '陈默', '七站'];
+
+/* ==========================================================
+   帖子数据
+   ========================================================== */
+var THREAD = {
+  id: 't001',
+  title: '【寻人】找旧城三中 2018 届高三 2 班 周予安',
+  author: '默',
+  authorId: 'chenmo',
+  avatar: '默',
+  avatarClass: 'a1',
+  time: '2018-06-08 02:17',
+  edited: '2024-06-08 02:17',
+  board: '寻人启事',
+  views: 3204,
+  replies: 5,
+  body: [
+    '2018 年 6 月 8 日，高考结束。',
+    '',
+    '我们约好走完旧城的七站。前六站都定了，第七站她不肯告诉我。',
+    '',
+    '6 月 9 日，我们走了三站。',
+    '6 月 10 日，又走了两站。',
+    '6 月 11 日，该去第六站了。',
+    '',
+    '但那天早上，我家突然搬走了。',
+    '',
+    '手机在搬家路上丢了。新号码还没来得及告诉她。',
+    '',
+    '等我想办法联系她的时候，已经过了很久。',
+    '',
+    '她没回我。',
+    '',
+    '我后来又回去过。书店还在，奶茶店还在，天台风还是很大。',
+    '',
+    '但相机不在了。',
+    '',
+    '那是她的相机。她说她放在书店二楼窗台了，密码让我猜。',
+    '',
+    '我没找到。我找了很多年。',
+    '',
+    '后来我每年 6 月 8 日都来这个论坛发一次帖子。老板换了，店员也换了，都说没见过那台相机。',
+    '',
+    '我不知道她是不是已经离开了旧城。',
+    '',
+    '如果你认识她，或者知道她在哪，请告诉我。',
+    '',
+    '我只想跟她说一句话：',
+    '',
+    '那天，对不起。',
+    '',
+    '—— 默'
+  ].join('\n'),
+  floors: [
+    {
+      no: 1,
+      name: '老陈',
+      uid: 'laochen',
+      avatar: '陈',
+      avatarClass: 'a2',
+      badge: '版主',
+      time: '2018-06-08 09:22',
+      text: '默哥，你这个帖子我每年都能看到。三年了。\n今年希望能有好消息。'
+    },
+    {
+      no: 2,
+      name: '阿豪',
+      uid: 'ahao',
+      avatar: '豪',
+      avatarClass: 'a5',
+      badge: '',
+      time: '2023-06-08 14:05',
+      text: '老城区拆得差不多了，但拾光书局还在。上周我路过，二楼靠窗的位置还空着。'
+    },
+    {
+      no: 3,
+      name: '小雨',
+      uid: 'xiaoyu',
+      avatar: '雨',
+      avatarClass: 'a3',
+      badge: '',
+      time: '2023-06-11 02:41',
+      text: '她很好。\n她一直在等。'
+    },
+    {
+      no: 4,
+      name: '默',
+      uid: 'chenmo',
+      avatar: '默',
+      avatarClass: 'a1',
+      badge: '',
+      time: '2023-06-11 03:58',
+      text: '回复 3 楼：你是谁？你认识她吗？',
+      op: true
+    },
+    {
+      no: 5,
+      name: '小雨',
+      uid: 'xiaoyu',
+      avatar: '雨',
+      avatarClass: 'a3',
+      badge: '',
+      time: '2024-04-06 07:07',
+      text: '我只是一个路过的人。\n\n有些话，不用等三年才说。'
+    }
+  ]
+};
+
+/* ==========================================================
+   用户资料
+   ========================================================== */
+var PROFILES = {
+  chenmo: {
+    name: '默',
+    avatar: '默',
+    avatarClass: 'a1',
+    tags: ['注册会员', '发帖 12', '寻人区常驻'],
+    table: [
+      ['用 户 名', 'chenmo'],
+      ['显示名', '默'],
+      ['注册时间', '2018-06-08'],
+      ['最后访问', '2024-06-08 02:17'],
+      ['帖子数', '12'],
+      ['所 在 地', '（未填写）'],
+      ['个人主页', '（未填写）']
+    ],
+    sign: '那天，对不起。'
+  },
+  xiaoyu: {
+    name: '小雨',
+    avatar: '雨',
+    avatarClass: 'a3',
+    tags: ['新手上路', '发帖 1', '注册 5 年'],
+    table: [
+      ['用 户 名', 'xiaoyu'],
+      ['显示名', '小雨'],
+      ['注册时间', '2019-06-08'],
+      ['最后访问', '2024-04-06 07:07'],
+      ['帖子数', '1'],
+      ['所 在 地', '（未填写）'],
+      ['个人主页', '（未填写）']
+    ],
+    sign: '我在第七站等你'
+  }
+};
+
+/* ==========================================================
+   工具
+   ========================================================== */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+var wait = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+
+/* ==========================================================
+   时钟
+   ========================================================== */
+(function(){
+  function pad(n){ return n<10 ? '0'+n : ''+n; }
+  function tick(){
+    var d = new Date();
+    document.getElementById('clock').textContent = pad(d.getHours())+':'+pad(d.getMinutes());
+  }
+  tick();
+  setInterval(tick, 10000);
+})();
+
+/* ==========================================================
+   开机
+   ========================================================== */
+(function(){
+  var lines = [
+    '>> 正在连接 旧城论坛 ...',
+    '>> 连接成功。bbs.oldcity.local',
+    '',
+    '>> 当前板块：寻人启事',
+    '>> 检测到 1 条与「A-173 相关人物」匹配的帖子。',
+    '',
+    '>> 提示：使用顶部搜索框，',
+    '    输入关键词（如"周予安"、"相机"、"2018"）查找。',
+    ''
+  ];
+  var el = document.getElementById('boot');
+  var i = 0;
+  function next(){
+    if(i < lines.length){
+      el.textContent += lines[i] + '\n';
+      i++;
+      setTimeout(next, lines[i-1] === '' ? 35 : (70 + Math.random()*80));
+    }else{
+      setTimeout(function(){
+        el.classList.add('hide');
+        setTimeout(function(){ el.style.display = 'none'; }, 680);
+        var inp = document.getElementById('searchInput');
+        if(inp) inp.focus();
+      }, 420);
+    }
+  }
+  next();
+})();
+
+/* ==========================================================
+   视图切换
+   ========================================================== */
+var views = {
+  list:    document.getElementById('viewList'),
+  thread:  document.getElementById('viewThread'),
+  profile: document.getElementById('viewProfile'),
+  mail:    document.getElementById('viewMail')
+};
+var pageInfo = document.getElementById('pageInfo');
+var statusText = document.getElementById('statusText');
+var btnBack = document.getElementById('btnBack');
+var history = [];
+
+function showView(name, pushHistory){
+  Object.keys(views).forEach(function(k){
+    views[k].classList.toggle('on', k === name);
+  });
+
+  if(pushHistory){
+    history.push(name);
+  }
+  btnBack.disabled = history.length <= 1;
+
+  var titles = {
+    list: '寻人启事',
+    thread: '帖子详情',
+    profile: '用户资料',
+    mail: '写邮件'
+  };
+  pageInfo.textContent = titles[name] || '';
+
+  document.getElementById('mainBox').scrollTop = 0;
+}
+
+btnBack.addEventListener('click', function(){
+  if(history.length > 1){
+    history.pop();
+    var prev = history[history.length - 1];
+    history.pop();      // 因为 showView 会重新 push
+    showView(prev, true);
+  }
+});
+
+document.getElementById('btnHome').addEventListener('click', function(){
+  history = [];
+  showView('list', false);
+  history.push('list');
+  btnBack.disabled = true;
+});
+
+/* ==========================================================
+   渲染帖子列表
+   ========================================================== */
+var postList = document.getElementById('postList');
+var threadRendered = false;
+
+function renderPostList(){
+  postList.innerHTML = '';
+
+  var row = document.createElement('div');
+  row.className = 'post-row hot';
+  row.innerHTML =
+    '<div class="post-icon">📌</div>'
+    + '<div class="post-main">'
+    +   '<div class="post-title">' + escapeHtml(THREAD.title) + '</div>'
+    +   '<div class="post-meta">发帖人：<b>' + escapeHtml(THREAD.author) + '</b>'
+    +     '　|　' + escapeHtml(THREAD.time)
+    +     '　|　最后编辑：' + escapeHtml(THREAD.edited) + '</div>'
+    + '</div>'
+    + '<div class="post-count">'
+    +   '浏览 <b>' + THREAD.views + '</b><br>'
+    +   '回复 <b>' + THREAD.replies + '</b>'
+    + '</div>';
+
+  row.addEventListener('click', function(){
+    openThread();
+  });
+
+  postList.appendChild(row);
+}
+
+/* ==========================================================
+   打开帖子
+   ========================================================== */
+function openThread(){
+  document.getElementById('threadTitle').textContent = THREAD.title;
+  document.getElementById('threadInfo').innerHTML =
+    '发帖人：<b>' + escapeHtml(THREAD.author) + '</b>'
+    + '　|　' + escapeHtml(THREAD.time)
+    + '　|　最后编辑：<b>' + escapeHtml(THREAD.edited) + '</b>'
+    + '　|　浏览：' + THREAD.views
+    + '　|　回复：' + THREAD.replies;
+
+  var floorsEl = document.getElementById('threadFloors');
+  floorsEl.innerHTML = '';
+
+  /* 主楼 */
+  var op = document.createElement('div');
+  op.className = 'floor op';
+  op.innerHTML =
+    '<div class="floor-avatar ' + THREAD.avatarClass + '">' + THREAD.avatar + '</div>'
+    + '<div class="floor-body">'
+    +   '<div class="floor-head">'
+    +     '<span class="floor-name me" data-uid="' + THREAD.authorId + '">'
+    +       escapeHtml(THREAD.author) + '</span>'
+    +     '<span class="floor-badge op">楼主</span>'
+    +     '<span class="floor-time">' + escapeHtml(THREAD.time) + '</span>'
+    +   '</div>'
+    +   '<div class="floor-text">' + escapeHtml(THREAD.body) + '</div>'
+    + '</div>';
+  floorsEl.appendChild(op);
+
+  /* 楼层 */
+  THREAD.floors.forEach(function(f){
+    var el = document.createElement('div');
+    el.className = 'floor';
+
+    var nameCls = (f.uid === THREAD.authorId) ? 'me' : '';
+    var badge = f.badge ? '<span class="floor-badge">' + f.badge + '</span>' : '';
+    if(f.op) badge = '<span class="floor-badge op">楼主</span>';
+
+    el.innerHTML =
+      '<div class="floor-avatar ' + f.avatarClass + '">' + f.avatar + '</div>'
+      + '<div class="floor-body">'
+      +   '<div class="floor-head">'
+      +     '<span class="floor-name ' + nameCls + '" data-uid="' + f.uid + '">'
+      +       escapeHtml(f.name) + '</span>'
+      +     badge
+      +     '<span class="floor-time">' + escapeHtml(f.time) + '</span>'
+      +   '</div>'
+      +   '<div class="floor-text">' + escapeHtml(f.text) + '</div>'
+      + '</div>';
+
+    /* 楼中楼：4楼引用3楼 */
+    if(f.no === 4){
+      var q = document.createElement('div');
+      q.className = 'quote';
+      q.textContent = '引用 3 楼「小雨」的发言：她很好。她一直在等。';
+      el.querySelector('.floor-text').insertBefore(q, el.querySelector('.floor-text').firstChild);
+    }
+
+    floorsEl.appendChild(el);
+  });
+
+  /* 绑定用户名点击 */
+  floorsEl.querySelectorAll('.floor-name').forEach(function(n){
+    n.addEventListener('click', function(e){
+      e.stopPropagation();
+      var uid = n.getAttribute('data-uid');
+      openProfile(uid);
+    });
+  });
+
+  statusText.textContent = '已打开帖子。可点击用户名查看资料。';
+  showView('thread', true);
+}
+
+/* ==========================================================
+   打开个人资料
+   ========================================================== */
+function openProfile(uid){
+  var p = PROFILES[uid];
+  if(!p){
+    statusText.textContent = '该用户资料未公开。';
+    return;
+  }
+
+  document.getElementById('pAvatar').textContent = p.avatar;
+  document.getElementById('pAvatar').className = 'profile-avatar ' + (p.avatarClass || '');
+  document.getElementById('pName').textContent = p.name;
+
+  var tagsEl = document.getElementById('pTags');
+  tagsEl.innerHTML = p.tags.map(function(t){
+    return '<span class="profile-tag">' + escapeHtml(t) + '</span>';
+  }).join('');
+
+  var tbl = document.getElementById('pTable');
+  tbl.innerHTML = p.table.map(function(r){
+    return '<tr class="line"><td class="k">' + escapeHtml(r[0]) + '</td>'
+         + '<td>' + escapeHtml(r[1]) + '</td></tr>';
+  }).join('');
+
+  document.getElementById('pSign').textContent = p.sign;
+
+  statusText.textContent = '正在查看用户「' + p.name + '」的资料。';
+  showView('profile', true);
+}
+
+/* ==========================================================
+   搜索
+   ========================================================== */
+document.getElementById('btnSearch').addEventListener('click', doSearch);
+document.getElementById('searchInput').addEventListener('keydown', function(e){
+  if(e.key === 'Enter'){ e.preventDefault(); doSearch(); }
+});
+
+function doSearch(){
+  var v = (document.getElementById('searchInput').value || '').trim();
+  if(!v){
+    statusText.textContent = '请输入搜索关键词。';
+    return;
+  }
+
+  var hit = TRIGGER_KEYS.some(function(k){
+    return v.indexOf(k) >= 0 || k.indexOf(v) >= 0;
+  });
+
+  if(hit){
+    statusText.textContent = '找到 1 条相关帖子。';
+    history = [];
+    showView('list', false);
+    history.push('list');
+    btnBack.disabled = true;
+    // 高亮一下帖子
+    var row = postList.querySelector('.post-row');
+    if(row){
+      row.style.transition = 'background .3s';
+      row.style.background = '#ffe0a0';
+      setTimeout(function(){ row.style.background = ''; }, 1400);
+    }
+  }else{
+    statusText.textContent = '未找到与「' + v + '」相关的内容。换个关键词试试。';
+  }
+}
+
+/* ==========================================================
+   写邮件
+   ========================================================== */
+document.getElementById('btnToMail').addEventListener('click', function(){
+  showView('mail', true);
+  setTimeout(function(){
+    document.getElementById('mailBody').focus();
+  }, 150);
+});
+document.getElementById('btnToMailFromProfile').addEventListener('click', function(){
+  showView('mail', true);
+  setTimeout(function(){
+    document.getElementById('mailBody').focus();
+  }, 150);
+});
+document.getElementById('btnBackFromMail').addEventListener('click', function(){
+  history.pop();
+  var prev = history[history.length - 1] || 'list';
+  history.pop();
+  showView(prev, true);
+});
+
+/* ==========================================================
+   发送邮件
+   ========================================================== */
+var mailBody = document.getElementById('mailBody');
+var mailMsg  = document.getElementById('mailMsg');
+var btnSend  = document.getElementById('btnSend');
+var mailSent = false;
+
+btnSend.addEventListener('click', function(){
+  if(mailSent) return;
+  var v = (mailBody.value || '').trim();
+  if(!v){
+    mailMsg.className = 'mail-msg err';
+    mailMsg.textContent = '邮件内容不能为空。';
+    return;
+  }
+
+  var norm = function(s){
+    return String(s).replace(/[\s\-—_，,。.！!？?、'"“”‘’]/g, '');
+  };
+  var nv = norm(v);
+
+  var ok = FINAL_ANSWERS.some(function(a){
+    var na = norm(a);
+    return nv.indexOf(na) >= 0;
+  });
+
+  if(ok){
+    mailSent = true;
+    btnSend.disabled = true;
+    mailBody.disabled = true;
+    mailMsg.className = 'mail-msg ok';
+    mailMsg.textContent = '发送中 ...';
+    runSend();
+  }else{
+    mailMsg.className = 'mail-msg err';
+    mailMsg.textContent = '邮件内容还不够。请再回到「小雨」的资料页，看看她的签名。';
+  }
+});
+
+/* ==========================================================
+   发送进度 + 结局
+   ========================================================== */
+async function runSend(){
+  var mask = document.getElementById('mask');
+  var bar  = document.getElementById('bar');
+  var msg  = document.getElementById('dlgMsg');
+
+  mask.classList.add('on');
+  bar.style.width = '0%';
+
+  var steps = [
+    ['正在投递邮件 ...',        30, 640],
+    ['正在送达 chenmo_0608 ...', 62, 720],
+    ['正在更新帖子状态 ...',     86, 680],
+    ['完成。',                  100, 460]
+  ];
+  for(var i=0;i<steps.length;i++){
+    msg.textContent = steps[i][0];
+    bar.style.width = steps[i][1] + '%';
+    await wait(steps[i][2]);
+  }
+  mask.classList.remove('on');
+
+  playEnding();
+}
+
+/* ==========================================================
+   结局动画
+   ========================================================== */
+async function playEnding(){
+  var end = document.getElementById('ending');
+  var box = document.getElementById('endingBox');
+
+  end.classList.add('on');
+
+  var lines = [
+    { t: 'A-173 已归还。', c: '' },
+    { t: '邮件于 2024-04-06 07:07 送达。', c: '' },
+    { t: '同日 07:07，旧城论坛收到一条新帖。', c: '' },
+    { t: '发帖人：默', c: 'e-small' },
+    { t: '帖子内容只有三个字。', c: 'e-small' },
+    { t: '我到了。', c: 'e-big' }
+  ];
+
+  box.innerHTML = '';
+  for(var i=0;i<lines.length;i++){
+    var d = document.createElement('div');
+    d.className = 'e-line ' + (lines[i].c || '');
+    d.textContent = lines[i].t;
+    box.appendChild(d);
+  }
+
+  // 逐行淡入
+  var divs = box.querySelectorAll('.e-line');
+  for(var j=0;j<divs.length;j++){
+    divs[j].classList.add('on');
+    await wait(j === divs.length - 1 ? 900 : 1400);
+  }
+
+  // 最后停留
+  await wait(2600);
+
+  // 收尾
+  var fin = document.createElement('div');
+  fin.className = 'e-line';
+  fin.style.marginTop = '30px';
+  fin.style.fontSize = '12px';
+  fin.style.color = '#666';
+  fin.style.letterSpacing = '3px';
+  fin.textContent = '—— 全 剧 终 ——';
+  box.appendChild(fin);
+  await wait(120);
+  fin.classList.add('on');
+}
+
+/* ==========================================================
+   启动
+   ========================================================== */
+renderPostList();
+history.push('list');
+showView('list', false);
+</script>
+</body>
+</html>

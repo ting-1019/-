@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#008080">
+<title>A-173 · 聊天记录备份</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"宋体",SimSun,"MS Song","Microsoft YaHei",monospace;
+  font-size:12px;background:#008080;overflow:hidden;user-select:none;
+  -webkit-tap-highlight-color:transparent;-webkit-font-smoothing:none;
+}
+#boot{
+  position:fixed;inset:0;z-index:10000;background:#000;color:#c8c8c8;
+  font-family:"Courier New",monospace;font-size:13px;line-height:1.55;
+  padding:26px 30px;white-space:pre;overflow:hidden;
+  transition:opacity .6s ease;
+}
+#boot.hide{opacity:0;pointer-events:none}
+#stage{
+  position:fixed;inset:0 0 28px 0;display:flex;align-items:center;justify-content:center;
+  padding:12px;overflow:auto;
+  background:radial-gradient(ellipse at 50% 35%, rgba(255,255,255,.10), transparent 62%),
+    linear-gradient(180deg,#0a8c8c 0%,#006a6a 100%);
+}
+#stage.hide{display:none}
+.window{
+  width:720px;max-width:100%;flex:0 0 auto;
+  background:#c0c0c0;border:2px solid;
+  border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:1px 1px 0 #808080, 5px 5px 16px rgba(0,0,0,.45);
+}
+.titlebar{
+  height:23px;margin:2px 2px 0;
+  background:linear-gradient(90deg,#000080 0%,#1084d0 100%);
+  display:flex;align-items:center;padding:0 3px 0 5px;
+  color:#fff;font-weight:bold;font-size:12px;letter-spacing:.4px;
+}
+.title-ico{
+  width:14px;height:14px;margin-right:5px;background:#c0c0c0;
+  border:1px solid #000;display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:#000;font-weight:bold;flex:0 0 auto;
+}
+.title-text{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.tbtn{
+  width:16px;height:14px;margin-left:2px;padding:0;background:#c0c0c0;
+  border:1px solid;border-color:#fff #000 #000 #fff;
+  font-family:inherit;font-size:9px;line-height:1;color:#000;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.tbtn:active{border-color:#000 #fff #fff #000}
+.menubar{display:flex;gap:1px;padding:1px 3px 2px;border-bottom:1px solid #808080}
+.menubar span{padding:2px 8px;cursor:default;font-size:12px}
+.menubar span:hover{background:#000080;color:#fff}
+.winbody{padding:10px}
+.file-info{display:flex;gap:12px}
+.file-icon{
+  flex:0 0 64px;height:64px;
+  display:flex;align-items:center;justify-content:center;
+}
+.file-icon svg{width:100%;height:100%}
+.file-meta{flex:1;min-width:0}
+.file-meta table{width:100%;border-collapse:collapse;font-size:12px}
+.file-meta td{padding:2.5px 4px;line-height:1.55;word-break:break-all}
+.file-meta td.k{color:#000080;width:64px;font-weight:bold;white-space:nowrap}
+.file-meta tr.line td{border-bottom:1px dotted #a8a8a8}
+.clue-zone{
+  margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;
+}
+.clue-card{
+  background:#fdfdfd;border:2px solid;
+  border-color:#808080 #fff #fff #808080;
+  box-shadow:inset 1px 1px 0 #000;
+  padding:8px 10px;min-height:100px;
+  position:relative;
+}
+.clue-card-title{
+  font-size:11px;color:#000080;font-weight:bold;
+  padding-bottom:3px;margin-bottom:5px;
+  border-bottom:1px solid #c8c8c8;letter-spacing:.5px;
+}
+.clue-card-body{font-size:11.5px;line-height:1.55;color:#333}
+.clue-card-body.hand{
+  font-family:"Kaiti SC","KaiTi",serif;
+  font-size:13px;color:#203060;
+  transform:rotate(-1deg);letter-spacing:1px;
+}
+.clue-badge{
+  position:absolute;right:5px;top:5px;
+  font-size:9px;color:#a00;background:#fff0f0;border:1px solid #d88;
+  padding:1px 4px;font-family:"Courier New",monospace;
+}
+.pwd-panel{
+  margin-top:10px;padding:9px 11px 11px;
+  border:2px solid;border-color:#808080 #fff #fff #808080;background:#c0c0c0;
+}
+.pwd-tip{font-size:12px;color:#000;margin-bottom:8px;line-height:1.6}
+.pwd-tip b{color:#a00000}
+.pwd-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.pwd-boxes{display:flex;gap:8px}
+.pwd-input{
+  width:38px;height:38px;text-align:center;
+  font-family:"Courier New",Courier,monospace;
+  font-size:23px;font-weight:bold;color:#000;background:#fff;
+  border:2px solid;border-color:#808080 #fff #fff #808080;
+  box-shadow:inset 1px 1px 0 #000;
+  outline:none;caret-color:#000;border-radius:0;
+}
+.pwd-input:focus{background:#ffffcc}
+.btn{
+  min-width:78px;height:25px;padding:0 12px;
+  background:#c0c0c0;border:2px solid;
+  border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
+  font-family:inherit;font-size:12px;color:#000;cursor:pointer;letter-spacing:1px;
+}
+.btn:active{border-color:#000 #dfdfdf #dfdfdf #000;box-shadow:inset 1px 1px 0 #808080}
+.btn:disabled{color:#888;text-shadow:1px 1px 0 #fff;cursor:default}
+#hint{
+  display:none;margin-top:7px;padding:6px 8px;
+  background:#ffffcc;border:1px solid #b8b800;
+  font-size:11.5px;color:#665500;line-height:1.6;
+}
+.statusbar{display:flex;gap:2px;padding:0 4px 4px;margin-top:2px}
+.status-cell{
+  padding:2px 7px;border:1px solid;
+  border-color:#808080 #fff #fff #808080;background:#c0c0c0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11.5px;
+}
+.status-cell:first-child{flex:1;min-width:0}
+.status-cell.fix{flex:0 0 auto;color:#000080}
+
+/* 聊天窗口 */
+#chatStage{
+  position:fixed;inset:0 0 28px 0;display:none;align-items:center;justify-content:center;
+  padding:10px;overflow:auto;
+  background:radial-gradient(ellipse at 50% 35%, rgba(255,255,255,.10), transparent 62%),
+    linear-gradient(180deg,#0a8c8c 0%,#006a6a 100%);
+}
+#chatStage.on{display:flex}
+.chat-window{
+  width:880px;max-width:100%;height:96%;max-height:660px;
+  display:flex;flex-direction:column;
+  background:#c0c0c0;border:2px solid;
+  border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:1px 1px 0 #808080, 5px 5px 16px rgba(0,0,0,.45);
+}
+.chat-main{
+  flex:1;display:flex;overflow:hidden;margin:4px;
+  background:#fff;border:2px solid;
+  border-color:#808080 #fff #fff #808080;
+  box-shadow:inset 1px 1px 0 #000;
+}
+.chat-sidebar{
+  flex:0 0 150px;background:#e8e8e8;
+  border-right:1px solid #a8a8a8;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sidebar-title{
+  background:linear-gradient(90deg,#000080,#1084d0);
+  color:#fff;font-size:11px;font-weight:bold;
+  padding:3px 7px;letter-spacing:.5px;
+}
+.sidebar-list{flex:1;overflow:auto;padding:4px 0}
+.sidebar-item{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 7px;cursor:pointer;font-size:11.5px;
+  border-bottom:1px solid #d8d8d8;
+}
+.sidebar-item:hover{background:#d8e8ff}
+.sidebar-item.cur{background:#000080;color:#fff}
+.sidebar-item.off{color:#999;font-style:italic}
+.sidebar-avatar{
+  width:22px;height:22px;flex:0 0 auto;background:#808080;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:bold;border:1px solid #404040;
+}
+.sidebar-name{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.chat-content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.chat-header{
+  padding:5px 10px;background:#f0f0f0;border-bottom:1px solid #a8a8a8;
+  font-size:12px;color:#000080;font-weight:bold;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.chat-header .hint-txt{font-size:11px;color:#666;font-weight:normal}
+.chat-body{flex:1;overflow:auto;padding:10px 14px;background:#fafafa}
+.date-divider{text-align:center;margin:12px 0 10px;font-size:11px;color:#888;font-family:"Courier New",monospace}
+.date-divider span{background:#e8e8e8;padding:2px 10px;border:1px solid #c0c0c0}
+.msg{display:flex;gap:8px;margin-bottom:12px;max-width:100%}
+.msg.self{flex-direction:row-reverse}
+.msg-avatar{
+  width:32px;height:32px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:bold;border:1px solid #404040;color:#fff;
+}
+.msg-avatar.zhou{background:#6080c0}
+.msg-avatar.chen{background:#c08060}
+.msg-body{max-width:76%;min-width:0}
+.msg-meta{font-size:10.5px;color:#888;margin-bottom:3px;font-family:"Courier New",monospace}
+.msg.self .msg-meta{text-align:right}
+.msg-bubble{
+  background:#fff;border:1px solid #a8a8a8;
+  padding:6px 9px;font-size:12.5px;line-height:1.55;color:#000;
+  word-break:break-word;
+}
+.msg.self .msg-bubble{background:#c8e0ff;border-color:#7a9cc8}
+.msg-bubble.img-bubble{padding:4px;background:#e8e8e8;cursor:pointer}
+.msg.self .msg-bubble.img-bubble{background:#b8d0f0}
+.msg-bubble.img-bubble:hover{background:#d8e8ff}
+.msg.self .msg-bubble.img-bubble:hover{background:#a8c8ec}
+.img-ph{
+  width:140px;height:100px;background:#a8a8a8;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;color:#444;font-family:"Courier New",monospace;
+  border:1px solid #707070;overflow:hidden;
+}
+.img-ph img{width:100%;height:100%;object-fit:cover;display:block}
+.img-label{font-size:10px;color:#555;text-align:center;padding:3px 2px 1px;font-family:"Courier New",monospace}
+.voice-bubble{display:flex;align-items:center;gap:6px;cursor:pointer;min-width:80px}
+.voice-bubble .wave{flex:1;height:14px;background:repeating-linear-gradient(90deg,#888 0 2px,transparent 2px 4px)}
+.voice-bubble .dur{font-size:11px;color:#666;font-family:"Courier New",monospace}
+.voice-bubble.playing .wave{background:repeating-linear-gradient(90deg,#4060a0 0 2px,transparent 2px 4px)}
+.voice-text{
+  display:none;margin-top:5px;padding:5px 7px;
+  background:#ffffcc;border:1px dashed #b8b800;
+  font-size:11.5px;color:#554400;line-height:1.55;
+}
+.voice-text.on{display:block}
+.recall-bubble{display:flex;align-items:center;gap:8px;color:#888;font-size:11.5px;font-style:italic}
+.recall-btn{
+  font-size:10.5px;color:#000080;background:#e8e8e8;
+  border:1px solid #a8a8a8;padding:1px 6px;cursor:pointer;
+  font-family:inherit;font-style:normal;
+}
+.recall-btn:hover{background:#d8e8ff}
+.recall-content{
+  display:none;margin-top:5px;padding:5px 7px;
+  background:#fff5f5;border:1px dashed #c88;
+  font-size:11.5px;color:#803030;line-height:1.55;
+}
+.recall-content.on{display:block}
+.sys-msg{text-align:center;margin:10px 0;font-size:11px;color:#888;font-style:italic}
+.final-panel{padding:10px 12px;border-top:1px solid #808080;background:#c0c0c0}
+.final-q{font-size:12px;line-height:1.7;margin-bottom:7px;color:#000}
+.final-q b{color:#a00000}
+.final-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.final-input{
+  flex:1;min-width:160px;height:26px;padding:0 8px;
+  font-family:inherit;font-size:12.5px;color:#000;background:#fff;
+  border:2px solid;border-color:#808080 #fff #fff #808080;
+  box-shadow:inset 1px 1px 0 #000;outline:none;border-radius:0;
+}
+.final-input:focus{background:#ffffcc}
+.final-msg{margin-top:6px;font-size:11.5px;line-height:1.6;min-height:16px}
+.final-msg.err{color:#a00000}
+.final-msg.ok{color:#006000}
+
+/* 图片查看器 */
+#viewer{
+  position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.55);
+  display:none;align-items:center;justify-content:center;padding:14px;
+}
+#viewer.on{display:flex}
+.viewer-win{width:640px;max-width:100%}
+.viewer-body{
+  margin:4px;background:#3a3a3a;border:2px solid;
+  border-color:#808080 #fff #fff #808080;
+  box-shadow:inset 1px 1px 0 #000;padding:12px;
+}
+.viewer-tabs{display:flex;gap:2px;margin-bottom:8px}
+.viewer-tab{
+  padding:3px 12px;background:#c0c0c0;font-family:inherit;font-size:11.5px;
+  border:2px solid;border-color:#dfdfdf #000 #000 #dfdfdf;cursor:pointer;color:#000;
+}
+.viewer-tab.on{background:#808080;color:#fff;border-color:#000 #dfdfdf #dfdfdf #000}
+.viewer-img{
+  min-height:260px;background:#1a1a1a;border:1px solid #000;
+  display:flex;align-items:center;justify-content:center;padding:10px;
+}
+.viewer-img img{max-width:100%;max-height:340px;display:block}
+.viewer-img .ph{
+  color:#aaa;font-family:"Courier New",monospace;font-size:12px;
+  text-align:center;padding:20px;line-height:1.8;white-space:pre-wrap;
+}
+.viewer-caption{margin-top:8px;color:#c8c8c8;font-size:11.5px;font-family:"Courier New",monospace;line-height:1.55}
+
+/* 进度 */
+#mask{
+  position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.3);
+  display:none;align-items:center;justify-content:center;padding:16px;
+}
+#mask.on{display:flex}
+.dialog{
+  width:360px;max-width:100%;background:#c0c0c0;
+  border:2px solid;border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:2px 2px 0 #808080, 6px 6px 18px rgba(0,0,0,.5);
+}
+.dlg-body{padding:16px 18px 18px}
+.dlg-msg{font-size:12.5px;margin-bottom:12px;line-height:1.6;min-height:20px;font-family:"Courier New",monospace}
+.progress{
+  height:18px;width:100%;background:#c0c0c0;border:2px solid;
+  border-color:#808080 #fff #fff #808080;
+  box-shadow:inset 1px 1px 0 #000;padding:2px;
+}
+.progress .bar{
+  height:100%;width:0%;
+  background:repeating-linear-gradient(90deg,#000080 0 9px,#c0c0c0 9px 11px);
+  transition:width .35s ease;
+}
+
+/* 任务栏 */
+.taskbar{
+  position:fixed;left:0;right:0;bottom:0;height:28px;z-index:200;
+  background:#c0c0c0;border-top:2px solid #dfdfdf;
+  display:flex;align-items:center;padding:2px;gap:4px;
+}
+.start-btn{
+  height:22px;padding:0 9px 0 6px;display:flex;align-items:center;gap:5px;
+  background:#c0c0c0;border:2px solid;border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
+  font-family:inherit;font-size:12px;font-weight:bold;cursor:pointer;flex:0 0 auto;
+}
+.start-btn:active{border-color:#000 #dfdfdf #dfdfdf #000;box-shadow:inset 1px 1px 0 #808080}
+.start-ico{
+  width:13px;height:13px;
+  background:linear-gradient(135deg,#ff0000 0 33%,#00a000 33% 66%,#0000e0 66% 100%);
+  border:1px solid #000;
+}
+.task-sep{width:2px;height:20px;border-left:1px solid #808080;border-right:1px solid #fff}
+.task-item{
+  flex:1;min-width:0;height:22px;display:flex;align-items:center;padding:0 8px;
+  background:#c0c0c0;border:2px solid;border-color:#808080 #fff #fff #808080;
+  box-shadow:inset 1px 1px 0 #000;font-size:11.5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.tray{
+  flex:0 0 auto;height:22px;display:flex;align-items:center;gap:6px;
+  padding:0 9px;border:1px solid;border-color:#808080 #fff #fff #808080;
+  font-size:11.5px;font-family:"Courier New",monospace;
+}
+.tray-dot{width:9px;height:9px;border-radius:50%;background:#00a000;box-shadow:0 0 4px #00c000}
+
+/* CRT */
+#crt{
+  position:fixed;inset:0;z-index:9000;pointer-events:none;
+  background:repeating-linear-gradient(0deg,
+    rgba(0,0,0,.13) 0px, rgba(0,0,0,.13) 1px,
+    transparent 1px, transparent 3px);
+  animation:flick 5s infinite;
+}
+#crt::before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(ellipse at center, transparent 52%, rgba(0,0,0,.38) 100%);
+}
+@keyframes flick{0%,95%,100%{opacity:1}96%{opacity:.90}97%{opacity:.98}98%{opacity:.93}}
+
+@media (max-width:640px){
+  .chat-sidebar{display:none}
+  .chat-body{padding:8px 6px}
+  .msg-avatar{width:26px;height:26px;font-size:11px}
+  .msg-body{max-width:84%}
+  .msg-bubble{font-size:12px}
+  .clue-zone{grid-template-columns:1fr}
+  .pwd-input{width:34px;height:34px;font-size:20px}
+  .viewer-img{min-height:200px}
+}
+</style>
+</head>
+<body>
+
+<div id="boot"></div>
+
+<!-- ========== 主界面：解压 ========== -->
+<div id="stage">
+  <div class="window">
+    <div class="titlebar">
+      <div class="title-ico">包</div>
+      <div class="title-text">A-173 · 储物柜文件 — Z:\A173\locker_0307</div>
+      <button class="tbtn">_</button>
+      <button class="tbtn">□</button>
+      <button class="tbtn">×</button>
+    </div>
+    <div class="menubar">
+      <span>文件(F)</span><span>编辑(E)</span><span>查看(V)</span>
+      <span>工具(T)</span><span>帮助(H)</span>
+    </div>
+    <div class="winbody">
+
+      <div class="file-info">
+        <div class="file-icon">
+          <svg viewBox="0 0 64 64">
+            <path d="M8 12 L28 12 L34 20 L56 20 L56 54 L8 54 Z"
+                  fill="#e8c860" stroke="#806020" stroke-width="2"/>
+            <rect x="20" y="26" width="24" height="20" fill="#fff8d0" stroke="#806020" stroke-width="1"/>
+            <text x="32" y="41" font-family="Courier New" font-size="12"
+                  font-weight="bold" fill="#806020" text-anchor="middle">ZIP</text>
+          </svg>
+        </div>
+        <div class="file-meta">
+          <table>
+            <tr class="line"><td class="k">文件名</td><td>聊天记录备份.zip</td></tr>
+            <tr class="line"><td class="k">大小</td><td>4.62 MB</td></tr>
+            <tr class="line"><td class="k">来源</td><td>储物柜 0307 底层 U 盘 · 与 DCIM 同目录</td></tr>
+            <tr class="line"><td class="k">加密</td><td>是（4 位数字）</td></tr>
+            <tr class="line"><td class="k">归档人</td><td>L.Zhou</td></tr>
+            <tr><td class="k">备注</td><td>压缩包创建时间 2018-06-12。密码提示在下方两张卡片里。</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="clue-zone">
+        <div class="clue-card">
+          <div class="clue-card-title">便签 · 手写</div>
+          <div class="clue-card-body hand">
+            压缩包密码<br>
+            就用我们出发的那天吧<br>
+            <span style="color:#a00">—— 周</span>
+          </div>
+          <div class="clue-badge">扫描件</div>
+        </div>
+        <div class="clue-card">
+          <div class="clue-card-title">拾光书局 · 消费小票</div>
+          <div class="clue-card-body" style="font-family:'Courier New',monospace;font-size:11px;line-height:1.7">
+            拾光书局<br>
+            旧城区 · 文化路 17 号<br>
+            ─────────────────────<br>
+            日期：<b style="color:#000">2018-06-09</b>  14:23<br>
+            收银：03<br>
+            商品            数量    金额<br>
+            柠檬红茶          1      12.0<br>
+            明信片（江边）    1       8.0<br>
+            胶卷冲洗          1       7.5<br>
+            ─────────────────────<br>
+            合计：27.5 元<br>
+            <span style="color:#666">谢谢惠顾，欢迎再来</span>
+          </div>
+          <div class="clue-badge">原件</div>
+        </div>
+      </div>
+
+      <div class="pwd-panel">
+        <div class="pwd-tip">
+          输入压缩包密码（<b>4 位数字</b>）：
+        </div>
+        <div class="pwd-row">
+          <div class="pwd-boxes" id="pwdBoxes">
+            <input class="pwd-input" type="text" inputmode="numeric" maxlength="1" autocomplete="off">
+            <input class="pwd-input" type="text" inputmode="numeric" maxlength="1" autocomplete="off">
+            <input class="pwd-input" type="text" inputmode="numeric" maxlength="1" autocomplete="off">
+            <input class="pwd-input" type="text" inputmode="numeric" maxlength="1" autocomplete="off">
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn" id="btnUnlock">解 压</button>
+            <button class="btn" id="btnClear">清 空</button>
+          </div>
+        </div>
+        <div id="hint"></div>
+      </div>
+
+    </div>
+    <div class="statusbar">
+      <div class="status-cell" id="statusText">就绪。等待输入密码。</div>
+      <div class="status-cell fix">Z:\A173\locker_0307</div>
+      <div class="status-cell fix">已选 1 项</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 聊天记录 ========== -->
+<div id="chatStage">
+  <div class="chat-window">
+    <div class="titlebar">
+      <div class="title-ico">聊</div>
+      <div class="title-text">微光聊天 · 记录备份 — zhouyuan_0608</div>
+      <button class="tbtn" id="chatMin">_</button>
+      <button class="tbtn">□</button>
+      <button class="tbtn" id="chatClose">×</button>
+    </div>
+    <div class="menubar">
+      <span>文件(F)</span><span>查看(V)</span><span>搜索(S)</span><span>帮助(H)</span>
+    </div>
+
+    <div class="chat-main">
+      <div class="chat-sidebar">
+        <div class="sidebar-title">联系人 (4)</div>
+        <div class="sidebar-list">
+          <div class="sidebar-item cur">
+            <div class="sidebar-avatar" style="background:#6080c0">周</div>
+            <div class="sidebar-name">周予安</div>
+          </div>
+          <div class="sidebar-item">
+            <div class="sidebar-avatar" style="background:#c08060">陈</div>
+            <div class="sidebar-name">陈默</div>
+          </div>
+          <div class="sidebar-item off">
+            <div class="sidebar-avatar">群</div>
+            <div class="sidebar-name">旧城摄影群</div>
+          </div>
+          <div class="sidebar-item off">
+            <div class="sidebar-avatar">群</div>
+            <div class="sidebar-name">拾光读者群</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-content">
+        <div class="chat-header">
+          <span>与 陈默 的对话</span>
+          <span class="hint-txt">导出于 2024-03-20 · 共 4 天记录</span>
+        </div>
+
+        <div class="chat-body" id="chatBody"></div>
+
+        <div class="final-panel">
+          <div class="final-q">
+            <b>归档核查：</b>请阅读聊天记录，打开周予安发的那张<strong>明信片</strong>，
+            查看其<strong>背面</strong>手写文字，输入其<strong>核心意思</strong>（两个字）。
+          </div>
+          <div class="final-row">
+            <input class="final-input" id="finalInput"
+                   placeholder="请输入两个字 ..." autocomplete="off" spellcheck="false" maxlength="20">
+            <button class="btn" id="btnFinal" style="height:26px">提 交</button>
+          </div>
+          <div class="final-msg" id="finalMsg"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="statusbar">
+      <div class="status-cell" id="chatStatus">已载入 4 天记录。</div>
+      <div class="status-cell fix">加密已解除</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 图片查看器 ========== -->
+<div id="viewer">
+  <div class="window viewer-win">
+    <div class="titlebar">
+      <div class="title-ico">图</div>
+      <div class="title-text" id="vTitle">明信片</div>
+      <button class="tbtn" id="vClose">×</button>
+    </div>
+    <div class="viewer-body">
+      <div class="viewer-tabs" id="vTabs">
+        <button class="viewer-tab on" data-side="front">正面</button>
+        <button class="viewer-tab" data-side="back">背面</button>
+      </div>
+      <div class="viewer-img" id="vImg"></div>
+      <div class="viewer-caption" id="vCaption"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 进度 ========== -->
+<div id="mask">
+  <div class="dialog">
+    <div class="titlebar">
+      <div class="title-ico">▶</div>
+      <div class="title-text">正在处理 ...</div>
+    </div>
+    <div class="dlg-body">
+      <div class="dlg-msg" id="dlgMsg">正在解压 ...</div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="taskbar">
+  <button class="start-btn" onclick="return false;">
+    <span class="start-ico"></span>开始
+  </button>
+  <div class="task-sep"></div>
+  <div class="task-item" id="taskText">A-173 · 储物柜文件</div>
+  <div class="tray">
+    <span class="tray-dot"></span>
+    <span id="clock">--:--</span>
+  </div>
+</div>
+
+<div id="crt"></div>
+
+<script>
+/* ==========================================================
+   配置区 —— 替换成你自己的图片路径
+   ========================================================== */
+var PACK_PASSWORD = '0609';          // 压缩包密码
+var NEXT_PAGE     = 'map.html';      // 下一章：第四章 · 地图轨迹
+
+var POSTCARD_FRONT = 'photos/postcard_front.jpg'; // 明信片正面（江边邮筒）
+var POSTCARD_BACK  = 'photos/postcard_back.jpg';  // 明信片背面（手写）
+
+/* 最终答案（核心意思，两个字） */
+var FINAL_ANSWERS = ['再见', '第七站不是地点是再见', '第七站不是地点，是再见'];
+
+/* ==========================================================
+   聊天记录数据
+   ========================================================== */
+var CHAT_LOG = [
+
+  { type:'date', text:'2018 年 6 月 8 日  星期五' },
+  { time:'14:32', from:'zhou', text:'终于考完了！！！' },
+  { time:'14:33', from:'chen', text:'嗯' },
+  { time:'14:35', from:'zhou', text:'明天开始走吗' },
+  { time:'14:36', from:'chen', text:'好 老地方见' },
+  { time:'14:37', from:'zhou', text:'早上八点 别迟到' },
+  { time:'14:40', from:'chen', text:'知道知道' },
+  { type:'sys', text:'—— 当天无更多消息 ——' },
+
+  { type:'date', text:'2018 年 6 月 9 日  星期六' },
+  { time:'08:02', from:'zhou', text:'你在哪' },
+  { time:'08:05', from:'chen', text:'到了' },
+  { time:'08:06', from:'zhou', text:'我也到了 没看见你' },
+  { time:'08:07', from:'chen', text:'你在后门还是前门' },
+  { time:'08:08', from:'zhou', text:'后门啊 老地方不就是后门' },
+  { time:'08:09', from:'chen', text:'我傻了 走的正门 马上到' },
+  { time:'08:15', from:'zhou', type:'image',
+    imgLabel:'IMG_0231.JPG', imgCaption:'锈掉的铁门', imgSrc:'photos/p2.jpg' },
+  { time:'08:16', from:'chen', text:'这铁门 都锈成这样了' },
+  { time:'08:17', from:'zhou', text:'十年了 能不成这样' },
+  { time:'10:35', from:'chen', text:'图书馆还是老样子' },
+  { time:'10:36', from:'zhou', text:'嗯 靠窗那排还在' },
+  { time:'10:37', from:'chen', text:'拍一张' },
+  { time:'10:38', from:'zhou', type:'image',
+    imgLabel:'IMG_0245.JPG', imgCaption:'靠窗的木桌', imgSrc:'photos/p3.jpg' },
+  { time:'10:40', from:'chen', text:'这张好' },
+  { time:'19:52', from:'zhou', text:'夜市人好多' },
+  { time:'19:53', from:'chen', text:'嗯' },
+  { time:'19:54', from:'zhou', type:'image',
+    imgLabel:'IMG_0238.JPG', imgCaption:'夜市的灯牌', imgSrc:'photos/p4.jpg' },
+  { time:'19:55', from:'chen', text:'糊了' },
+  { time:'19:56', from:'zhou', text:'手抖' },
+  { time:'19:57', from:'chen', text:'哈哈哈' },
+  { type:'sys', text:'—— 当天无更多消息 ——' },
+
+  { type:'date', text:'2018 年 6 月 10 日  星期日' },
+  { time:'15:06', from:'zhou', text:'地下通道你还记得吗' },
+  { time:'15:07', from:'chen', text:'记得 那个涂鸦' },
+  { time:'15:08', from:'zhou', text:'上面有我们名字的那个' },
+  { time:'15:09', from:'chen', text:'嗯 你没拍吗' },
+  { time:'15:10', from:'zhou', text:'拍了 但被盖掉一半了' },
+  { time:'15:11', from:'zhou', type:'image',
+    imgLabel:'IMG_0277.JPG', imgCaption:'地下通道 · 涂鸦', imgSrc:'photos/p5.jpg' },
+  { time:'15:13', from:'chen', text:'谁盖的' },
+  { time:'15:14', from:'zhou', text:'不知道 好像是别人画了新涂鸦' },
+  { time:'15:15', from:'chen', text:'算了 无所谓' },
+  { time:'17:40', from:'zhou', text:'到书店了 我坐老位置' },
+  { time:'17:41', from:'zhou', type:'image',
+    imgLabel:'IMG_0261.JPG', imgCaption:'拾光书局 二楼靠窗', imgSrc:'photos/p6.jpg' },
+  { time:'17:42', from:'chen', text:'马上到' },
+  { time:'17:50', from:'chen', text:'到了 你在二楼是吧' },
+  { time:'17:51', from:'zhou', text:'嗯 靠窗' },
+  { type:'sys', text:'—— 当天无更多消息 ——' },
+
+  { type:'date', text:'2018 年 6 月 11 日  星期一' },
+  { time:'18:20', from:'zhou', text:'天台风好大' },
+  { time:'18:21', from:'chen', text:'小心点' },
+  { time:'18:22', from:'zhou', text:'第七站你想去哪' },
+  { time:'18:25', from:'chen', text:'不是说先不告诉我吗' },
+  { time:'18:26', from:'zhou', text:'那你猜' },
+  { time:'18:27', from:'chen', text:'猜不到' },
+  { time:'18:28', from:'zhou', text:'那等你回来我告诉你' },
+  { time:'18:29', from:'chen', text:'嗯 等我' },
+
+  { type:'sys', text:'',
+    recall:{ time:'18:31', text:'其实我明天就要搬走了 还没来得及跟你说' }
+  },
+
+  { time:'18:33', from:'zhou', text:'？' },
+  { time:'18:34', from:'zhou', text:'你发什么了' },
+  { time:'18:35', from:'zhou', text:'算了 说正事' },
+  { time:'18:36', from:'zhou', text:'相机我放书店二楼窗台了' },
+  { time:'18:37', from:'zhou', text:'密码你猜 就四个数' },
+  { time:'18:38', from:'zhou', text:'我把第七站写在明信片后面了' },
+  { time:'18:39', from:'zhou', text:'放在相机包里' },
+  { time:'18:40', from:'zhou', text:'等你回来' },
+
+  { time:'18:45', from:'zhou', type:'voice',
+    voiceDur:"13''",
+    voiceText:'（语音转文字）我先回去了。相机你收好。' },
+
+  { time:'18:50', from:'zhou', type:'image',
+    imgLabel:'postcard.jpg', imgCaption:'明信片（江边邮筒）',
+    imgSrc:'photos/postcard_front.jpg', isPostcard:true },
+
+  { time:'18:51', from:'zhou', text:'这就是第七站' },
+  { time:'18:52', from:'zhou', text:'等你回来一起走' },
+
+  { type:'sys', text:'—— 此后无更多消息 ——' },
+  { type:'sys', text:'（2024-03-20 归档时，此对话已保存）' }
+];
+
+/* ==========================================================
+   工具
+   ========================================================== */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+var wait = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+
+/* ==========================================================
+   时钟
+   ========================================================== */
+(function(){
+  function pad(n){ return n<10 ? '0'+n : ''+n; }
+  function tick(){
+    var d = new Date();
+    document.getElementById('clock').textContent = pad(d.getHours())+':'+pad(d.getMinutes());
+  }
+  tick();
+  setInterval(tick, 10000);
+})();
+
+/* ==========================================================
+   开机过渡
+   ========================================================== */
+(function(){
+  var lines = [
+    '>> 挂载 Z: 旧城归档卷 ... OK',
+    '>> 定位目录 \\A173\\locker_0307 ...',
+    '',
+    '>> 发现 4 个文件：',
+    '     locker_manifest.txt',
+    '     便签扫描件.jpg',
+    '     拾光书局小票.jpg',
+    '     聊天记录备份.zip        (加密 · 4 位数字)',
+    '',
+    '>> 请根据提示解开压缩包。',
+    ''
+  ];
+  var el = document.getElementById('boot');
+  var i = 0;
+  function next(){
+    if(i < lines.length){
+      el.textContent += lines[i] + '\n';
+      i++;
+      setTimeout(next, lines[i-1] === '' ? 35 : (75 + Math.random()*80));
+    }else{
+      setTimeout(function(){
+        el.classList.add('hide');
+        setTimeout(function(){ el.style.display = 'none'; }, 700);
+        var first = document.querySelector('.pwd-input');
+        if(first) first.focus();
+      }, 420);
+    }
+  }
+  next();
+})();
+
+/* ==========================================================
+   密码输入
+   ========================================================== */
+var inputs = Array.prototype.slice.call(document.querySelectorAll('.pwd-input'));
+var statusText = document.getElementById('statusText');
+var hintBox = document.getElementById('hint');
+var tries = 0;
+var unlocked = false;
+
+function setStatus(t){ statusText.textContent = t; }
+
+function clearInputs(){
+  inputs.forEach(function(i){ i.value = ''; });
+  inputs[0].focus();
+}
+
+inputs.forEach(function(el, idx){
+  el.addEventListener('input', function(){
+    var v = el.value.replace(/\D/g,'');
+    el.value = v.slice(-1);
+    if(el.value && idx < inputs.length - 1) inputs[idx+1].focus();
+  });
+  el.addEventListener('keydown', function(e){
+    if(e.key === 'Backspace' && !el.value && idx > 0){
+      e.preventDefault();
+      inputs[idx-1].value = '';
+      inputs[idx-1].focus();
+    }
+    if(e.key === 'Enter'){ e.preventDefault(); checkPassword(); }
+    if(e.key === 'ArrowLeft' && idx > 0) inputs[idx-1].focus();
+    if(e.key === 'ArrowRight' && idx < inputs.length-1) inputs[idx+1].focus();
+  });
+  el.addEventListener('paste', function(e){
+    var t = (e.clipboardData || window.clipboardData).getData('text') || '';
+    t = t.replace(/\D/g,'');
+    if(t.length >= 1){
+      e.preventDefault();
+      for(var k = 0; k < inputs.length; k++) inputs[k].value = t[k] || '';
+      var last = Math.min(t.length, inputs.length) - 1;
+      if(last >= 0) inputs[last].focus();
+    }
+  });
+});
+
+function checkPassword(){
+  if(unlocked) return;
+  var val = inputs.map(function(i){ return i.value; }).join('');
+  if(val.length < 4){ setStatus('密码不完整。'); return; }
+
+  if(val === PACK_PASSWORD){
+    unlocked = true;
+    inputs.forEach(function(i){ i.disabled = true; });
+    document.getElementById('btnUnlock').disabled = true;
+    setStatus('密码正确。正在解压 ...');
+    runUnlock();
+  }else{
+    tries++;
+    clearInputs();
+    if(tries === 1){
+      setStatus('密码错误。请重新输入。');
+    }else if(tries === 2){
+      setStatus('密码错误。提示：见上方两张卡片。');
+      hintBox.style.display = 'block';
+      hintBox.innerHTML = '提示 · 便签写的是“出发那天”，右边拾光书局小票的日期是 '
+                        + '<b>2018-06-09</b>。<br>把这一天的月份和日期取出来，组成 4 位数字。';
+    }else{
+      setStatus('密码错误。');
+      hintBox.style.display = 'block';
+      hintBox.innerHTML = '提示 · 出发那天 = <b>2018 年 6 月 9 日</b>。'
+                        + '<br>月份 <b>06</b>，日期 <b>09</b>，密码就是 <b>0609</b>。';
+    }
+  }
+}
+
+document.getElementById('btnUnlock').addEventListener('click', checkPassword);
+document.getElementById('btnClear').addEventListener('click', function(){
+  if(unlocked) return;
+  clearInputs();
+  setStatus('已清空。');
+});
+
+/* ==========================================================
+   解压流程
+   ========================================================== */
+async function runUnlock(){
+  var mask = document.getElementById('mask');
+  var bar  = document.getElementById('bar');
+  var msg  = document.getElementById('dlgMsg');
+
+  mask.classList.add('on');
+  bar.style.width = '0%';
+  var steps = [
+    ['正在校验密码 ...',              20, 550],
+    ['正在解压 聊天记录备份.zip ...',  45, 720],
+    ['正在解析 微光聊天 数据格式 ...', 72, 700],
+    ['正在加载消息 ...',              92, 620],
+    ['完成。',                       100, 420]
+  ];
+  for(var i=0;i<steps.length;i++){
+    msg.textContent = steps[i][0];
+    bar.style.width = steps[i][1] + '%';
+    await wait(steps[i][2]);
+  }
+  mask.classList.remove('on');
+
+  document.getElementById('stage').classList.add('hide');
+  document.getElementById('chatStage').classList.add('on');
+  document.getElementById('taskText').textContent = '微光聊天 · 记录备份';
+
+  renderChat();
+}
+
+/* ==========================================================
+   渲染聊天记录
+   ========================================================== */
+var chatBody = document.getElementById('chatBody');
+
+function renderChat(){
+  var html = '';
+
+  CHAT_LOG.forEach(function(item, idx){
+
+    /* 日期分隔 */
+    if(item.type === 'date'){
+      html += '<div class="date-divider"><span>' + item.text + '</span></div>';
+      return;
+    }
+
+    /* 系统消息 / 撤回 */
+    if(item.type === 'sys'){
+      if(item.recall){
+        html += '<div class="msg">'
+              +   '<div class="msg-avatar chen">陈</div>'
+              +   '<div class="msg-body">'
+              +     '<div class="msg-bubble">'
+              +       '<div class="recall-bubble">'
+              +         '对方撤回了一条消息'
+              +         '<button class="recall-btn" data-recall="' + idx + '">查看撤回内容</button>'
+              +       '</div>'
+              +       '<div class="recall-content" id="recall-' + idx + '"></div>'
+              +     '</div>'
+              +   '</div>'
+              + '</div>';
+      }else{
+        html += '<div class="sys-msg">' + escapeHtml(item.text) + '</div>';
+      }
+      return;
+    }
+
+    var side = (item.from === 'zhou') ? 'self' : '';
+    var av   = (item.from === 'zhou') ? 'zhou' : 'chen';
+    var avTx = (item.from === 'zhou') ? '周' : '陈';
+
+    /* 图片 */
+    if(item.type === 'image'){
+      var imgHtml = '';
+      if(item.imgSrc){
+        imgHtml = '<img src="' + item.imgSrc + '" alt="" '
+                + 'onerror="this.outerHTML=\'<div class=&quot;ph&quot; style=&quot;font-size:10px;color:#666&quot;>'
+                + (item.imgLabel || '图片') + '</div>\'">';
+      }else{
+        imgHtml = '<span style="font-size:10px;color:#666">' + (item.imgLabel || '图片') + '</span>';
+      }
+      html += '<div class="msg ' + side + '">'
+            +   '<div class="msg-avatar ' + av + '">' + avTx + '</div>'
+            +   '<div class="msg-body">'
+            +     '<div class="msg-meta">' + item.time + '</div>'
+            +     '<div class="msg-bubble img-bubble" data-img="' + idx + '">'
+            +       '<div class="img-ph">' + imgHtml + '</div>'
+            +       '<div class="img-label">' + escapeHtml(item.imgCaption || '') + '</div>'
+            +     '</div>'
+            +   '</div>'
+            + '</div>';
+      return;
+    }
+
+    /* 语音 */
+    if(item.type === 'voice'){
+      html += '<div class="msg ' + side + '">'
+            +   '<div class="msg-avatar ' + av + '">' + avTx + '</div>'
+            +   '<div class="msg-body">'
+            +     '<div class="msg-meta">' + item.time + '</div>'
+            +     '<div class="msg-bubble">'
+            +       '<div class="voice-bubble" data-voice="' + idx + '">'
+            +         '<span style="color:#666;font-size:11px">▶</span>'
+            +         '<span class="wave"></span>'
+            +         '<span class="dur">' + item.voiceDur + '</span>'
+            +       '</div>'
+            +       '<div class="voice-text" id="voice-' + idx + '">'
+            +         escapeHtml(item.voiceText) + '</div>'
+            +     '</div>'
+            +   '</div>'
+            + '</div>';
+      return;
+    }
+
+    /* 纯文本 */
+    html += '<div class="msg ' + side + '">'
+          +   '<div class="msg-avatar ' + av + '">' + avTx + '</div>'
+          +   '<div class="msg-body">'
+          +     '<div class="msg-meta">' + item.time + '</div>'
+          +     '<div class="msg-bubble">' + escapeHtml(item.text) + '</div>'
+          +   '</div>'
+          + '</div>';
+  });
+
+  chatBody.innerHTML = html;
+  bindChatEvents();
+  chatBody.scrollTop = 0;   // 从头看起
+}
+
+/* ==========================================================
+   绑定聊天记录交互
+   ========================================================== */
+function bindChatEvents(){
+
+  /* 撤回 */
+  chatBody.querySelectorAll('.recall-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var idx = parseInt(btn.getAttribute('data-recall'), 10);
+      var item = CHAT_LOG[idx];
+      var box = document.getElementById('recall-' + idx);
+      if(box.classList.contains('on')){
+        box.classList.remove('on');
+        box.innerHTML = '';
+        btn.textContent = '查看撤回内容';
+      }else{
+        box.classList.add('on');
+        box.innerHTML = '<b>[' + item.recall.time + ' 撤回的原消息]</b><br>'
+                      + escapeHtml(item.recall.text);
+        btn.textContent = '收起';
+      }
+    });
+  });
+
+  /* 语音 */
+  chatBody.querySelectorAll('.voice-bubble').forEach(function(el){
+    el.addEventListener('click', function(){
+      var idx = parseInt(el.getAttribute('data-voice'), 10);
+      var t = document.getElementById('voice-' + idx);
+      t.classList.toggle('on');
+      el.classList.toggle('playing');
+    });
+  });
+
+  /* 图片 */
+  chatBody.querySelectorAll('.img-bubble').forEach(function(el){
+    el.addEventListener('click', function(){
+      var idx = parseInt(el.getAttribute('data-img'), 10);
+      openViewer(CHAT_LOG[idx]);
+    });
+  });
+}
+
+/* ==========================================================
+   图片查看器
+   ========================================================== */
+var viewer    = document.getElementById('viewer');
+var vImg      = document.getElementById('vImg');
+var vCaption  = document.getElementById('vCaption');
+var vTitle    = document.getElementById('vTitle');
+var vTabs     = document.getElementById('vTabs');
+var currentItem = null;
+var currentSide = 'front';
+
+function openViewer(item){
+  currentItem = item;
+  vTitle.textContent = item.imgLabel || '图片';
+
+  if(item.isPostcard){
+    vTabs.style.display = 'flex';
+    currentSide = 'front';
+    updateTabs();
+  }else{
+    vTabs.style.display = 'none';
+  }
+
+  renderViewerImg();
+  viewer.classList.add('on');
+}
+
+function updateTabs(){
+  vTabs.querySelectorAll('.viewer-tab').forEach(function(t){
+    t.classList.toggle('on', t.getAttribute('data-side') === currentSide);
+  });
+}
+
+function renderViewerImg(){
+  vImg.innerHTML = '';
+  if(!currentItem) return;
+
+  var src, caption, fallback;
+
+  if(currentItem.isPostcard){
+    if(currentSide === 'front'){
+      src = POSTCARD_FRONT;
+      caption = '明信片 · 正面 — 江边邮筒（摄于 2018-06）';
+      fallback = '（正面：江边一个绿色 07 号邮筒）';
+    }else{
+      src = POSTCARD_BACK;
+      caption = '明信片 · 背面 — 手写文字';
+      fallback = '背面手写：\n\n“第七站不是地点，是再见。”\n\n—— 周予安  2018.06.11';
+    }
+  }else{
+    src = currentItem.imgSrc;
+    caption = (currentItem.imgCaption || '') + ' · ' + (currentItem.imgLabel || '');
+    fallback = currentItem.imgLabel || '图片未找到';
+  }
+
+  if(src){
+    var img = document.createElement('img');
+    img.src = src;
+    img.alt = '';
+    img.onerror = function(){
+      vImg.innerHTML = '<div class="ph">' + escapeHtml(fallback)
+                     + '\n\n（图片未找到：' + src + '）</div>';
+    };
+    vImg.appendChild(img);
+  }else{
+    vImg.innerHTML = '<div class="ph">' + escapeHtml(fallback) + '</div>';
+  }
+
+  vCaption.textContent = caption;
+}
+
+vTabs.querySelectorAll('.viewer-tab').forEach(function(t){
+  t.addEventListener('click', function(){
+    currentSide = t.getAttribute('data-side');
+    updateTabs();
+    renderViewerImg();
+  });
+});
+
+document.getElementById('vClose').addEventListener('click', function(){
+  viewer.classList.remove('on');
+});
+viewer.addEventListener('click', function(e){
+  if(e.target === viewer) viewer.classList.remove('on');
+});
+
+/* ==========================================================
+   最终答案
+   ========================================================== */
+var finalInput = document.getElementById('finalInput');
+var finalMsg   = document.getElementById('finalMsg');
+var btnFinal   = document.getElementById('btnFinal');
+var finalSolved = false;
+
+btnFinal.addEventListener('click', checkFinal);
+finalInput.addEventListener('keydown', function(e){
+  if(e.key === 'Enter'){ e.preventDefault(); checkFinal(); }
+});
+
+function normalize(s){
+  return String(s).replace(/[，,。！!？?\s'"“”‘’·]/g, '');
+}
+
+function checkFinal(){
+  if(finalSolved) return;
+  var v = normalize(finalInput.value || '');
+  if(!v){
+    finalMsg.className = 'final-msg err';
+    finalMsg.textContent = '请输入你的答案。';
+    return;
+  }
+  var ok = FINAL_ANSWERS.some(function(a){
+    return v.indexOf(normalize(a)) >= 0 || normalize(a).indexOf(v) >= 0;
+  });
+  if(ok){
+    finalSolved = true;
+    btnFinal.disabled = true;
+    finalInput.disabled = true;
+    finalMsg.className = 'final-msg ok';
+    finalMsg.textContent = '核查通过。正在归档 ...';
+    runFinalProgress();
+  }else{
+    finalMsg.className = 'final-msg err';
+    finalMsg.textContent = '答案不匹配。请打开明信片，切换到背面查看手写文字。';
+  }
+}
+
+/* ==========================================================
+   跳转下一章
+   ========================================================== */
+async function runFinalProgress(){
+  var mask = document.getElementById('mask');
+  var bar  = document.getElementById('bar');
+  var msg  = document.getElementById('dlgMsg');
+
+  mask.classList.add('on');
+  bar.style.width = '0%';
+  var steps = [
+    ['正在核对答案 ...',       30, 560],
+    ['正在关联档案 A-173 ...', 62, 640],
+    ['正在载入下一节 ...',     88, 620],
+    ['完成。',                100, 420]
+  ];
+  for(var i=0;i<steps.length;i++){
+    msg.textContent = steps[i][0];
+    bar.style.width = steps[i][1] + '%';
+    await wait(steps[i][2]);
+  }
+  window.location.href = NEXT_PAGE;
+}
+
+/* ==========================================================
+   关闭按钮（占位）
+   ========================================================== */
+document.getElementById('chatClose').addEventListener('click', function(){
+  if(confirm('关闭此窗口将丢失未归档内容，确定吗？')){
+    location.reload();
+  }
+});
+document.getElementById('chatMin').addEventListener('click', function(){
+  document.getElementById('chatStage').classList.remove('on');
+  document.getElementById('stage').classList.remove('hide');
+  document.getElementById('taskText').textContent = 'A-173 · 储物柜文件';
+});
+</script>
+</body>
+</html>

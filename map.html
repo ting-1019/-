@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#008080">
+<title>旧城地图 v2.1 — 路线档案 A-173</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"宋体",SimSun,"MS Song","Microsoft YaHei",monospace;
+  font-size:12px;background:#008080;overflow:hidden;user-select:none;
+  -webkit-tap-highlight-color:transparent;-webkit-font-smoothing:none;
+}
+
+/* 开机 */
+#boot{
+  position:fixed;inset:0;z-index:10000;background:#000;color:#c8c8c8;
+  font-family:"Courier New",monospace;font-size:13px;line-height:1.55;
+  padding:26px 30px;white-space:pre;overflow:hidden;
+  transition:opacity .6s ease;
+}
+#boot.hide{opacity:0;pointer-events:none}
+
+/* 桌面 */
+#stage{
+  position:fixed;inset:0 0 28px 0;display:flex;align-items:center;justify-content:center;
+  padding:10px;overflow:auto;
+  background:radial-gradient(ellipse at 50% 35%, rgba(255,255,255,.10), transparent 62%),
+    linear-gradient(180deg,#0a8c8c 0%,#006a6a 100%);
+}
+
+/* 窗口 */
+.window{
+  width:920px;max-width:100%;height:96%;max-height:680px;
+  display:flex;flex-direction:column;
+  background:#c0c0c0;border:2px solid;
+  border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:1px 1px 0 #808080, 5px 5px 16px rgba(0,0,0,.45);
+}
+.titlebar{
+  height:23px;margin:2px 2px 0;flex:0 0 auto;
+  background:linear-gradient(90deg,#000080 0%,#1084d0 100%);
+  display:flex;align-items:center;padding:0 3px 0 5px;
+  color:#fff;font-weight:bold;font-size:12px;letter-spacing:.4px;
+}
+.title-ico{
+  width:14px;height:14px;margin-right:5px;background:#c0c0c0;
+  border:1px solid #000;display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:#000;font-weight:bold;flex:0 0 auto;
+}
+.title-text{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.tbtn{
+  width:16px;height:14px;margin-left:2px;padding:0;background:#c0c0c0;
+  border:1px solid;border-color:#fff #000 #000 #fff;
+  font-family:inherit;font-size:9px;line-height:1;color:#000;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.tbtn:active{border-color:#000 #fff #fff #000}
+.menubar{
+  display:flex;gap:1px;padding:1px 3px 2px;flex:0 0 auto;
+  border-bottom:1px solid #808080;
+}
+.menubar span{padding:2px 8px;cursor:default;font-size:12px}
+.menubar span:hover{background:#000080;color:#fff}
+
+/* 工具栏 */
+.toolbar{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  padding:4px 6px;border-bottom:1px solid #808080;
+  background:#c0c0c0;flex:0 0 auto;
+}
+.tb-btn{
+  height:24px;padding:0 9px;background:#c0c0c0;
+  border:2px solid;border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
+  font-family:inherit;font-size:11.5px;color:#000;cursor:pointer;
+  display:flex;align-items:center;gap:4px;white-space:nowrap;
+}
+.tb-btn:active{border-color:#000 #dfdfdf #dfdfdf #000;box-shadow:inset 1px 1px 0 #808080}
+.tb-btn:disabled{color:#888;text-shadow:1px 1px 0 #fff;cursor:default}
+.tb-btn.on{background:#b0b0b0;font-weight:bold;
+  border-color:#000 #dfdfdf #dfdfdf #000;box-shadow:inset 1px 1px 0 #808080}
+.tb-sep{width:2px;height:20px;border-left:1px solid #808080;border-right:1px solid #fff}
+.search-wrap{
+  flex:1;min-width:140px;display:flex;gap:4px;align-items:center;
+}
+.search-wrap input{
+  flex:1;min-width:80px;height:24px;padding:0 7px;
+  font-family:inherit;font-size:12px;color:#000;background:#fff;
+  border:2px solid;border-color:#808080 #fff #fff #808080;
+  box-shadow:inset 1px 1px 0 #000;outline:none;border-radius:0;
+}
+.search-wrap input:focus{background:#ffffcc}
+.search-wrap button{
+  height:24px;padding:0 10px;background:#c0c0c0;
+  border:2px solid;border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
+  font-family:inherit;font-size:11.5px;cursor:pointer;color:#000;
+}
+.search-wrap button:active{border-color:#000 #dfdfdf #dfdfdf #000;box-shadow:inset 1px 1px 0 #808080}
+
+/* 主体 */
+.main{
+  flex:1;display:flex;overflow:hidden;margin:4px;
+  background:#fff;border:2px solid;
+  border-color:#808080 #fff #fff #808080;
+  box-shadow:inset 1px 1px 0 #000;
+}
+
+/* 侧边栏 */
+.sidebar{
+  flex:0 0 156px;background:#e8e8e8;
+  border-right:1px solid #a8a8a8;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sidebar-title{
+  background:linear-gradient(90deg,#000080,#1084d0);
+  color:#fff;font-size:11px;font-weight:bold;
+  padding:3px 7px;letter-spacing:.5px;flex:0 0 auto;
+}
+.marker-list{flex:1;overflow:auto;padding:2px 0}
+.marker-item{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 8px;cursor:pointer;font-size:11.5px;
+  border-bottom:1px solid #d8d8d8;
+}
+.marker-item:hover{background:#d8e8ff}
+.marker-item.cur{background:#000080;color:#fff}
+.marker-item.seen .mi-dot{background:#00a000}
+.marker-item.off{color:#999;font-style:italic}
+.mi-dot{
+  width:8px;height:8px;border-radius:50%;flex:0 0 auto;
+  background:#a0a0a0;border:1px solid #606060;
+}
+.mi-idx{
+  width:18px;text-align:center;font-family:"Courier New",monospace;
+  font-size:11px;font-weight:bold;flex:0 0 auto;
+}
+.mi-name{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+
+/* 地图区域 */
+.map-area{
+  flex:1;position:relative;overflow:hidden;
+  background:#ede4c8;
+}
+.map-area svg{
+  width:100%;height:100%;display:block;
+  image-rendering:pixelated;
+}
+.map-loading{
+  position:absolute;inset:0;background:#ede4c8;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:"Courier New",monospace;font-size:12px;color:#666;
+  gap:10px;z-index:10;transition:opacity .5s;
+}
+.map-loading.hide{opacity:0;pointer-events:none}
+.ml-bar{
+  width:180px;height:14px;background:#c0b898;
+  border:1px solid #a09878;padding:2px;
+}
+.ml-bar div{height:100%;width:0%;background:#806020;
+  transition:width .3s ease}
+
+/* SVG 元素 */
+.marker{cursor:pointer;transition:opacity .2s}
+.marker:hover circle{fill:#e04040}
+.marker circle{
+  transition:fill .2s, r .2s;
+}
+.marker text{pointer-events:none;user-select:none}
+.marker.selected circle{fill:#0040c0;stroke:#ffff00;stroke-width:3}
+
+.marker.unknown circle{fill:#808080;stroke:#a0a0a0;stroke-dasharray:3 2}
+.marker.unknown text{fill:#e0e0e0}
+.marker.revealed circle{fill:#008060;stroke:#ffff00}
+.marker.unknown.pulse circle{
+  animation:pulse 1.4s infinite;
+}
+@keyframes pulse{
+  0%,100%{r:10;opacity:1}
+  50%{r:13;opacity:.6}
+}
+
+.route-line{
+  fill:none;stroke:#c02020;stroke-width:2.5;
+  stroke-dasharray:8 5;stroke-linecap:round;
+  stroke-linejoin:round;
+  animation:dash 1.6s linear infinite;
+}
+@keyframes dash{
+  to{stroke-dashoffset:-26}
+}
+
+.map-label{
+  font-family:"KaiTi","STKaiti",serif;
+  fill:#5a4a30;
+  pointer-events:none;user-select:none;
+}
+
+/* 信息面板 */
+.info-panel{
+  flex:0 0 226px;background:#c0c0c0;
+  border-left:1px solid #808080;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.info-header{
+  background:linear-gradient(90deg,#000080,#1084d0);
+  color:#fff;font-size:11px;font-weight:bold;
+  padding:3px 7px;letter-spacing:.5px;flex:0 0 auto;
+}
+.info-body{
+  flex:1;overflow:auto;padding:9px 11px;
+}
+.info-empty{
+  color:#888;font-size:11.5px;line-height:1.7;
+  font-style:italic;padding:10px 0;text-align:center;
+}
+.info-table{width:100%;border-collapse:collapse;font-size:11.5px}
+.info-table td{padding:3px 2px;vertical-align:top;line-height:1.5;word-break:break-all}
+.info-table td.k{color:#000080;width:60px;white-space:nowrap;font-weight:bold}
+.info-table tr.line td{border-bottom:1px dotted #a8a8a8}
+
+.info-note{
+  margin-top:9px;padding:7px 8px;
+  background:#ffffcc;border:1px solid #b8b800;
+  font-size:11.5px;color:#554400;line-height:1.6;
+}
+.info-note.red{
+  background:#ffe8e8;border-color:#c88;color:#803030;
+}
+.info-note.green{
+  background:#e8ffe8;border-color:#8c8;color:#306030;
+}
+
+/* 答案 */
+.answer-zone{
+  margin-top:10px;padding-top:10px;
+  border-top:1px solid #a8a8a8;
+}
+.answer-q{
+  font-size:11.5px;line-height:1.65;color:#000;margin-bottom:7px;
+}
+.answer-q b{color:#a00000}
+.answer-input{
+  width:100%;height:26px;padding:0 8px;margin-bottom:6px;
+  font-family:inherit;font-size:12.5px;color:#000;background:#fff;
+  border:2px solid;border-color:#808080 #fff #fff #808080;
+  box-shadow:inset 1px 1px 0 #000;outline:none;border-radius:0;
+}
+.answer-input:focus{background:#ffffcc}
+.answer-btn{
+  width:100%;height:26px;background:#c0c0c0;
+  border:2px solid;border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
+  font-family:inherit;font-size:12px;cursor:pointer;color:#000;
+}
+.answer-btn:active{border-color:#000 #dfdfdf #dfdfdf #000;box-shadow:inset 1px 1px 0 #808080}
+.answer-msg{
+  margin-top:6px;font-size:11.5px;line-height:1.6;min-height:16px;
+}
+.answer-msg.err{color:#a00000}
+.answer-msg.ok{color:#006000}
+
+/* 状态栏 */
+.statusbar{
+  display:flex;gap:2px;padding:0 4px 4px;flex:0 0 auto;
+}
+.status-cell{
+  padding:2px 7px;border:1px solid;
+  border-color:#808080 #fff #fff #808080;background:#c0c0c0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11.5px;
+}
+.status-cell:first-child{flex:1;min-width:0}
+.status-cell.fix{flex:0 0 auto;color:#000080}
+
+/* 任务栏 */
+.taskbar{
+  position:fixed;left:0;right:0;bottom:0;height:28px;z-index:200;
+  background:#c0c0c0;border-top:2px solid #dfdfdf;
+  display:flex;align-items:center;padding:2px;gap:4px;
+}
+.start-btn{
+  height:22px;padding:0 9px 0 6px;display:flex;align-items:center;gap:5px;
+  background:#c0c0c0;border:2px solid;border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
+  font-family:inherit;font-size:12px;font-weight:bold;cursor:pointer;flex:0 0 auto;
+}
+.start-btn:active{border-color:#000 #dfdfdf #dfdfdf #000;box-shadow:inset 1px 1px 0 #808080}
+.start-ico{
+  width:13px;height:13px;
+  background:linear-gradient(135deg,#ff0000 0 33%,#00a000 33% 66%,#0000e0 66% 100%);
+  border:1px solid #000;
+}
+.task-sep{width:2px;height:20px;border-left:1px solid #808080;border-right:1px solid #fff}
+.task-item{
+  flex:1;min-width:0;height:22px;display:flex;align-items:center;padding:0 8px;
+  background:#c0c0c0;border:2px solid;border-color:#808080 #fff #fff #808080;
+  box-shadow:inset 1px 1px 0 #000;font-size:11.5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.tray{
+  flex:0 0 auto;height:22px;display:flex;align-items:center;gap:6px;
+  padding:0 9px;border:1px solid;border-color:#808080 #fff #fff #808080;
+  font-size:11.5px;font-family:"Courier New",monospace;
+}
+.tray-dot{width:9px;height:9px;border-radius:50%;background:#00a000;box-shadow:0 0 4px #00c000}
+
+/* CRT */
+#crt{
+  position:fixed;inset:0;z-index:9000;pointer-events:none;
+  background:repeating-linear-gradient(0deg,
+    rgba(0,0,0,.13) 0px, rgba(0,0,0,.13) 1px,
+    transparent 1px, transparent 3px);
+  animation:flick 5s infinite;
+}
+#crt::before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(ellipse at center, transparent 52%, rgba(0,0,0,.38) 100%);
+}
+@keyframes flick{0%,95%,100%{opacity:1}96%{opacity:.90}97%{opacity:.98}98%{opacity:.93}}
+
+/* 进度 */
+#mask{
+  position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.3);
+  display:none;align-items:center;justify-content:center;padding:16px;
+}
+#mask.on{display:flex}
+.dialog{
+  width:360px;max-width:100%;background:#c0c0c0;
+  border:2px solid;border-color:#dfdfdf #000 #000 #dfdfdf;
+  box-shadow:2px 2px 0 #808080, 6px 6px 18px rgba(0,0,0,.5);
+}
+.dlg-body{padding:16px 18px 18px}
+.dlg-msg{font-size:12.5px;margin-bottom:12px;line-height:1.6;min-height:20px;font-family:"Courier New",monospace}
+.progress{
+  height:18px;width:100%;background:#c0c0c0;border:2px solid;
+  border-color:#808080 #fff #fff #808080;
+  box-shadow:inset 1px 1px 0 #000;padding:2px;
+}
+.progress .bar{
+  height:100%;width:0%;
+  background:repeating-linear-gradient(90deg,#000080 0 9px,#c0c0c0 9px 11px);
+  transition:width .35s ease;
+}
+
+/* 移动端 */
+@media (max-width:780px){
+  .window{height:auto;max-height:none;margin:8px 0}
+  .main{flex-direction:column;height:auto}
+  .sidebar{flex:0 0 auto;max-height:100px;border-right:none;border-bottom:1px solid #a8a8a8}
+  .marker-list{display:flex;flex-wrap:wrap;padding:2px}
+  .marker-item{border-bottom:none;padding:3px 6px}
+  .map-area{height:320px;flex:0 0 auto}
+  .info-panel{flex:0 0 auto;max-height:340px;border-left:none;border-top:1px solid #808080}
+  .info-body{max-height:300px}
+}
+@media (max-width:460px){
+  .tb-btn{padding:0 6px;font-size:11px}
+  .map-area{height:260px}
+}
+</style>
+</head>
+<body>
+
+<div id="boot"></div>
+
+<div id="stage">
+  <div class="window">
+    <div class="titlebar">
+      <div class="title-ico">图</div>
+      <div class="title-text">旧城地图 v2.1 — 路线档案 A-173</div>
+      <button class="tbtn">_</button>
+      <button class="tbtn">□</button>
+      <button class="tbtn">×</button>
+    </div>
+
+    <div class="menubar">
+      <span>文件(F)</span><span>编辑(E)</span><span>视图(V)</span>
+      <span>图层(L)</span><span>工具(T)</span><span>帮助(H)</span>
+    </div>
+
+    <div class="toolbar">
+      <button class="tb-btn" id="btnConnect">▸ 生成路线</button>
+      <button class="tb-btn" id="btnClear">× 清除</button>
+      <div class="tb-sep"></div>
+      <div class="search-wrap">
+        <input id="searchInput" type="text" placeholder="搜索地点或坐标 ..." autocomplete="off">
+        <button id="btnSearch">搜索</button>
+      </div>
+    </div>
+
+    <div class="main">
+      <!-- 侧边栏 -->
+      <div class="sidebar">
+        <div class="sidebar-title">已记录地点 (7)</div>
+        <div class="marker-list" id="markerList"></div>
+      </div>
+
+      <!-- 地图 -->
+      <div class="map-area">
+        <div class="map-loading" id="mapLoading">
+          <div>正在渲染旧城区地图 ...</div>
+          <div class="ml-bar"><div id="mlBar"></div></div>
+        </div>
+
+        <svg id="mapSvg" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet">
+          <!-- 底图 -->
+          <rect width="400" height="400" fill="#ede4c8"/>
+
+          <!-- 网格 -->
+          <g stroke="#ddd4b8" stroke-width="0.6">
+            <line x1="40" y1="0" x2="40" y2="400"/>
+            <line x1="80" y1="0" x2="80" y2="400"/>
+            <line x1="120" y1="0" x2="120" y2="400"/>
+            <line x1="160" y1="0" x2="160" y2="400"/>
+            <line x1="200" y1="0" x2="200" y2="400"/>
+            <line x1="240" y1="0" x2="240" y2="400"/>
+            <line x1="280" y1="0" x2="280" y2="400"/>
+            <line x1="320" y1="0" x2="320" y2="400"/>
+            <line x1="360" y1="0" x2="360" y2="400"/>
+            <line x1="0" y1="40" x2="400" y2="40"/>
+            <line x1="0" y1="80" x2="400" y2="80"/>
+            <line x1="0" y1="120" x2="400" y2="120"/>
+            <line x1="0" y1="160" x2="400" y2="160"/>
+            <line x1="0" y1="200" x2="400" y2="200"/>
+            <line x1="0" y1="240" x2="400" y2="240"/>
+            <line x1="0" y1="280" x2="400" y2="280"/>
+            <line x1="0" y1="320" x2="400" y2="320"/>
+            <line x1="0" y1="360" x2="400" y2="360"/>
+          </g>
+
+          <!-- 江（河流） -->
+          <path d="M -20 336 Q 80 296 160 316 Q 260 340 420 282 L 420 420 L -20 420 Z"
+                fill="#b0d0e8" stroke="#90b0d0" stroke-width="1"/>
+          <text x="330" y="378" class="map-label" font-size="18" font-style="italic">江</text>
+
+          <!-- 公园绿地 -->
+          <rect x="36" y="176" width="52" height="42" fill="#c8e0b0"
+                stroke="#a0c080" stroke-width="0.8" rx="3"/>
+          <text x="62" y="202" class="map-label" font-size="8" text-anchor="middle">公园</text>
+
+          <rect x="280" y="40" width="56" height="36" fill="#c8e0b0"
+                stroke="#a0c080" stroke-width="0.8" rx="3"/>
+          <text x="308" y="62" class="map-label" font-size="8" text-anchor="middle">苗圃</text>
+
+          <!-- 主要道路 -->
+          <g stroke="#c8b090" stroke-width="4" fill="none" stroke-linecap="round">
+            <path d="M 20 30 L 380 180"/>
+            <path d="M 200 10 L 200 380"/>
+            <path d="M 30 240 L 390 140"/>
+          </g>
+
+          <!-- 次要道路 -->
+          <g stroke="#d8c8a8" stroke-width="2" fill="none">
+            <path d="M 60 60 L 340 120"/>
+            <path d="M 80 290 L 320 230"/>
+            <path d="M 100 30 L 260 340"/>
+            <path d="M 320 30 L 140 360"/>
+          </g>
+
+          <!-- 街区标签 -->
+          <text x="48" y="34" class="map-label" font-size="9">旧城三中</text>
+          <text x="220" y="26" class="map-label" font-size="9">城东区</text>
+          <text x="40" y="326" class="map-label" font-size="9">旧城图书馆</text>
+
+          <!-- 路线（动态） -->
+          <polyline id="routeLine" class="route-line" points=""/>
+
+          <!-- 标记组 -->
+          <g id="markerGroup"></g>
+        </svg>
+      </div>
+
+      <!-- 信息面板 -->
+      <div class="info-panel">
+        <div class="info-header">地点信息</div>
+        <div class="info-body" id="infoBody">
+          <div class="info-empty">
+            点击地图上的标记<br>查看详细信息
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="statusbar">
+      <div class="status-cell" id="statusText">就绪。已载入旧城区地图。</div>
+      <div class="status-cell fix" id="seenInfo">已查看 0 / 7</div>
+      <div class="status-cell fix">A-173</div>
+    </div>
+  </div>
+</div>
+
+<!-- 进度 -->
+<div id="mask">
+  <div class="dialog">
+    <div class="titlebar">
+      <div class="title-ico">▶</div>
+      <div class="title-text">正在处理 ...</div>
+    </div>
+    <div class="dlg-body">
+      <div class="dlg-msg" id="dlgMsg">正在分析 ...</div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="taskbar">
+  <button class="start-btn" onclick="return false;">
+    <span class="start-ico"></span>开始
+  </button>
+  <div class="task-sep"></div>
+  <div class="task-item">旧城地图 v2.1 — 路线档案 A-173</div>
+  <div class="tray">
+    <span class="tray-dot"></span>
+    <span id="clock">--:--</span>
+  </div>
+</div>
+
+<div id="crt"></div>
+
+<script>
+/* ==========================================================
+   配置区
+   ========================================================== */
+var NEXT_PAGE = 'forum.html';   // 下一章：第五章 · 旧城论坛
+
+/* 最终答案：任何一项包含即可 */
+var FINAL_ANSWERS = [
+  '江边07号邮筒',
+  '江边七号邮筒',
+  '07号邮筒',
+  '七号邮筒',
+  '江边邮筒',
+  '第七站'
+];
+
+/* ==========================================================
+   地图数据
+   ========================================================== */
+var MARKERS = [
+  {
+    id: 'A', order: 1,
+    name: '旧城三中 后门',
+    x: 80, y: 62,
+    date: '2018.06.09  08:14',
+    coord: "N 30°14'52\"  E 120°09'31\"",
+    photo: 'IMG_0231.JPG',
+    note: '锈掉的铁门。',
+    visible: true
+  },
+  {
+    id: 'B', order: 2,
+    name: '旧城图书馆',
+    x: 140, y: 106,
+    date: '2018.06.09  10:37',
+    coord: "N 30°14'48\"  E 120°09'40\"",
+    photo: 'IMG_0245.JPG',
+    note: '靠窗的木桌。',
+    visible: true
+  },
+  {
+    id: 'C', order: 3,
+    name: '河堤夜市',
+    x: 196, y: 158,
+    date: '2018.06.09  19:52',
+    coord: "N 30°14'36\"  E 120°09'55\"",
+    photo: 'IMG_0238.JPG',
+    note: '夜市的灯牌，画面有点糊。',
+    visible: true
+  },
+  {
+    id: 'D', order: 4,
+    name: '地下通道',
+    x: 244, y: 208,
+    date: '2018.06.10  15:08',
+    coord: "N 30°14'41\"  E 120°09'22\"",
+    photo: 'IMG_0277.JPG',
+    note: '墙上的涂鸦。数字被盖掉一半。',
+    visible: true
+  },
+  {
+    id: 'E', order: 5,
+    name: '拾光书局',
+    x: 282, y: 244,
+    date: '2018.06.10  17:41',
+    coord: "N 30°14'44\"  E 120°09'37\"",
+    photo: 'IMG_0261.JPG',
+    note: '二楼靠窗，奶茶还没喝完。',
+    visible: true
+  },
+  {
+    id: 'F', order: 6,
+    name: '百货大楼 天台',
+    x: 310, y: 288,
+    date: '2018.06.11  18:23',
+    coord: "N 30°14'50\"  E 120°09'18\"",
+    photo: 'IMG_0302.JPG',
+    note: '天台风很大。远处有个锈风向标。',
+    visible: true
+  },
+  {
+    id: 'X', order: '·',
+    name: 'IMG_0198（无关）',
+    x: 52, y: 250,
+    date: '2018.05.20  13:02',
+    coord: "N 30°15'02\"  E 120°09'11\"",
+    photo: 'IMG_0198.JPG',
+    note: '一只猫。与本次路线无关。',
+    visible: true,
+    off: true
+  }
+];
+
+/* 未知点（在搜索"江边"后出现） */
+var UNKNOWN = {
+  id: '?', order: '?',
+  name: '未知 · 第七站',
+  x: 322, y: 332,
+  date: '—',
+  coord: '未记录',
+  photo: '—',
+  note: '坐标缺失。',
+  visible: false
+};
+
+/* 路线顺序（按时间） */
+var ROUTE_ORDER = ['A','B','C','D','E','F'];
+
+/* ==========================================================
+   工具
+   ========================================================== */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+var wait = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+
+/* ==========================================================
+   时钟
+   ========================================================== */
+(function(){
+  function pad(n){ return n<10 ? '0'+n : ''+n; }
+  function tick(){
+    var d = new Date();
+    document.getElementById('clock').textContent = pad(d.getHours())+':'+pad(d.getMinutes());
+  }
+  tick();
+  setInterval(tick, 10000);
+})();
+
+/* ==========================================================
+   开机
+   ========================================================== */
+(function(){
+  var lines = [
+    '>> 载入 旧城地图 v2.1 ...',
+    '>> 正在读取路线档案 A-173 ...',
+    '',
+    '>> 路线档案包含 6 个已知站点。',
+    '>> 检测到 1 个无关标记（已标灰）。',
+    '',
+    '>> 提示：',
+    '    使用「生成路线」按钮连接已知站点。',
+    '    空白处（第七站）需要你自己找出来。',
+    ''
+  ];
+  var el = document.getElementById('boot');
+  var i = 0;
+  function next(){
+    if(i < lines.length){
+      el.textContent += lines[i] + '\n';
+      i++;
+      setTimeout(next, lines[i-1] === '' ? 35 : (70 + Math.random()*80));
+    }else{
+      setTimeout(function(){
+        el.classList.add('hide');
+        setTimeout(function(){ el.style.display = 'none'; }, 680);
+      }, 420);
+    }
+  }
+  next();
+})();
+
+/* ==========================================================
+   地图加载
+   ========================================================== */
+(function(){
+  var bar = document.getElementById('mlBar');
+  var box = document.getElementById('mapLoading');
+  var w = 0;
+  var t = setInterval(function(){
+    w += 8 + Math.random()*14;
+    if(w >= 100){
+      w = 100;
+      clearInterval(t);
+      setTimeout(function(){
+        box.classList.add('hide');
+      }, 320);
+    }
+    bar.style.width = w + '%';
+  }, 180);
+})();
+
+/* ==========================================================
+   状态
+   ========================================================== */
+var seen = {};        // 已查看过的标记 id
+var selectedId = null;
+var routeDrawn = false;
+var unknownRevealed = false;
+var solved = false;
+
+var markerGroup = document.getElementById('markerGroup');
+var routeLine   = document.getElementById('routeLine');
+var markerList  = document.getElementById('markerList');
+var infoBody    = document.getElementById('infoBody');
+var statusText  = document.getElementById('statusText');
+var seenInfo    = document.getElementById('seenInfo');
+
+/* ==========================================================
+   渲染标记
+   ========================================================== */
+function renderMarkers(){
+  markerGroup.innerHTML = '';
+
+  // 已知标记
+  MARKERS.forEach(function(m){
+    var g = makeMarkerSvg(m);
+    markerGroup.appendChild(g);
+  });
+
+  // 未知标记（未揭示时隐藏）
+  if(unknownRevealed){
+    var ug = makeMarkerSvg(UNKNOWN);
+    ug.classList.add('unknown');
+    if(unknownRevealed && !solved) ug.classList.add('pulse');
+    markerGroup.appendChild(ug);
+  }
+}
+
+function makeMarkerSvg(m){
+  var NS = 'http://www.w3.org/2000/svg';
+  var g = document.createElementNS(NS, 'g');
+  g.setAttribute('class', 'marker');
+  g.setAttribute('data-id', m.id);
+  if(m.off) g.classList.add('off');
+  if(m.id === '?') g.classList.add('unknown');
+  if(m.id === '?' && unknownRevealed && solved) g.classList.add('revealed');
+  if(m.id === selectedId) g.classList.add('selected');
+
+  var circle = document.createElementNS(NS, 'circle');
+  circle.setAttribute('cx', m.x);
+  circle.setAttribute('cy', m.y);
+  circle.setAttribute('r', 10);
+  circle.setAttribute('fill', m.off ? '#909090' : (m.id === '?' ? '#808080' : '#c03030'));
+  circle.setAttribute('stroke', '#fff');
+  circle.setAttribute('stroke-width', '2');
+
+  var text = document.createElementNS(NS, 'text');
+  text.setAttribute('x', m.x);
+  text.setAttribute('y', m.y + 4);
+  text.setAttribute('text-anchor', 'middle');
+  text.setAttribute('font-size', '11');
+  text.setAttribute('font-weight', 'bold');
+  text.setAttribute('fill', '#fff');
+  text.setAttribute('font-family', 'Courier New, monospace');
+  text.textContent = m.order;
+
+  g.appendChild(circle);
+  g.appendChild(text);
+
+  g.addEventListener('click', function(){
+    selectMarker(m.id);
+  });
+
+  return g;
+}
+
+/* ==========================================================
+   侧边栏列表
+   ========================================================== */
+function renderList(){
+  markerList.innerHTML = '';
+
+  MARKERS.forEach(function(m){
+    var div = document.createElement('div');
+    div.className = 'marker-item';
+    if(m.id === selectedId) div.classList.add('cur');
+    if(seen[m.id]) div.classList.add('seen');
+    if(m.off) div.classList.add('off');
+
+    div.innerHTML =
+      '<span class="mi-dot"></span>'
+      + '<span class="mi-idx">' + m.order + '</span>'
+      + '<span class="mi-name">' + escapeHtml(m.name) + '</span>';
+
+    div.addEventListener('click', function(){ selectMarker(m.id); });
+    markerList.appendChild(div);
+  });
+
+  // 未知点
+  if(unknownRevealed){
+    var ud = document.createElement('div');
+    ud.className = 'marker-item';
+    if(selectedId === '?') ud.classList.add('cur');
+    if(seen['?']) ud.classList.add('seen');
+    ud.innerHTML =
+      '<span class="mi-dot" style="background:#808080"></span>'
+      + '<span class="mi-idx">?</span>'
+      + '<span class="mi-name">' + escapeHtml(UNKNOWN.name) + '</span>';
+    ud.addEventListener('click', function(){ selectMarker('?'); });
+    markerList.appendChild(ud);
+  }
+}
+
+/* ==========================================================
+   选中标记
+   ========================================================== */
+function selectMarker(id){
+  selectedId = id;
+
+  var m = null;
+  if(id === '?') m = UNKNOWN;
+  else m = MARKERS.find(function(x){ return x.id === id; });
+
+  if(!m) return;
+
+  seen[id] = true;
+
+  renderMarkers();
+  renderList();
+  showInfo(m);
+  updateSeenInfo();
+}
+
+function updateSeenInfo(){
+  var total = MARKERS.length + (unknownRevealed ? 1 : 0);
+  var cnt = Object.keys(seen).length;
+  seenInfo.textContent = '已查看 ' + cnt + ' / ' + total;
+}
+
+/* ==========================================================
+   信息面板
+   ========================================================== */
+function showInfo(m){
+  if(m.id === '?' && unknownRevealed && !solved){
+    // 未揭示全名
+    infoBody.innerHTML = ''
+      + '<table class="info-table">'
+      +   '<tr class="line"><td class="k">标记</td><td>未知 · 第七站</td></tr>'
+      +   '<tr class="line"><td class="k">坐标</td><td>' + m.coord + '</td></tr>'
+      +   '<tr class="line"><td class="k">记录时间</td><td>' + m.date + '</td></tr>'
+      +   '<tr class="line"><td class="k">参考照片</td><td>' + m.photo + '</td></tr>'
+      + '</table>'
+      + '<div class="info-note">'
+      +   '这个位置在地图上没有名字。<br>'
+      +   '看看地图上的地名、明信片上的那句话，'
+      +   '再想想这一站应该叫什么。'
+      + '</div>'
+      + '<div class="answer-zone">'
+      +   '<div class="answer-q"><b>归档核查：</b>第七站的名称是什么？</div>'
+      +   '<input class="answer-input" id="answerInput" '
+      +     'placeholder="请输入完整地点名 ..." autocomplete="off">'
+      +   '<button class="answer-btn" id="btnSubmit">提 交 核 查</button>'
+      +   '<div class="answer-msg" id="answerMsg"></div>'
+      + '</div>';
+    bindAnswer();
+    return;
+  }
+
+  if(m.id === '?' && solved){
+    infoBody.innerHTML = ''
+      + '<table class="info-table">'
+      +   '<tr class="line"><td class="k">名称</td><td><b>江边 07 号邮筒</b></td></tr>'
+      +   '<tr class="line"><td class="k">坐标</td><td>N 30°14\'20"  E 120°09\'45"</td></tr>'
+      +   '<tr class="line"><td class="k">类型</td><td>公共设施 · 邮筒</td></tr>'
+      +   '<tr class="line"><td class="k">编号</td><td>07</td></tr>'
+      +   '<tr class="line"><td class="k">状态</td><td><span style="color:#006000">已确认</span></td></tr>'
+      + '</table>'
+      + '<div class="info-note green">'
+      +   '核查通过。第七站：江边 07 号邮筒。<br>'
+      +   '正在归档 ...'
+      + '</div>';
+    return;
+  }
+
+  // 普通标记
+  var html = ''
+    + '<table class="info-table">'
+    +   '<tr class="line"><td class="k">名称</td><td>' + escapeHtml(m.name) + '</td></tr>'
+    +   '<tr class="line"><td class="k">坐标</td><td>' + escapeHtml(m.coord) + '</td></tr>'
+    +   '<tr class="line"><td class="k">记录时间</td><td>' + escapeHtml(m.date) + '</td></tr>'
+    +   '<tr class="line"><td class="k">参考照片</td><td>' + escapeHtml(m.photo) + '</td></tr>'
+    + '</table>';
+
+  if(m.off){
+    html += '<div class="info-note red">'
+          +   '⚠ 此标记与本次路线无关。<br>'
+          +   m.note
+          + '</div>';
+  }else{
+    html += '<div class="info-note">'
+          +   '备注：' + escapeHtml(m.note)
+          + '</div>';
+  }
+
+  infoBody.innerHTML = html;
+}
+
+/* ==========================================================
+   生成路线
+   ========================================================== */
+function drawRoute(){
+  var pts = ROUTE_ORDER.map(function(id){
+    var m = MARKERS.find(function(x){ return x.id === id; });
+    return m ? (m.x + ',' + m.y) : '';
+  }).filter(Boolean).join(' ');
+
+  routeLine.setAttribute('points', pts);
+  routeDrawn = true;
+
+  // 画完后，把选中清理一下，让玩家自己找未知点
+  statusText.textContent = '已生成路线。空白处是第七站，需要你自己找出来。';
+}
+
+document.getElementById('btnConnect').addEventListener('click', function(){
+  if(routeDrawn) return;
+  // 至少看过 3 个标记才允许生成
+  var cnt = MARKERS.filter(function(m){ return seen[m.id]; }).length;
+  if(cnt < 3){
+    statusText.textContent = '提示：请先点击至少 3 个标记，查看它们的坐标和时间。';
+    return;
+  }
+  drawRoute();
+  this.classList.add('on');
+  this.disabled = true;
+});
+
+document.getElementById('btnClear').addEventListener('click', function(){
+  routeLine.setAttribute('points', '');
+  routeDrawn = false;
+  var b = document.getElementById('btnConnect');
+  b.classList.remove('on');
+  b.disabled = false;
+  statusText.textContent = '已清除路线。';
+});
+
+/* ==========================================================
+   搜索
+   ========================================================== */
+document.getElementById('btnSearch').addEventListener('click', doSearch);
+document.getElementById('searchInput').addEventListener('keydown', function(e){
+  if(e.key === 'Enter'){ e.preventDefault(); doSearch(); }
+});
+
+function doSearch(){
+  var v = (document.getElementById('searchInput').value || '').trim();
+  if(!v) return;
+
+  var found = false;
+
+  // 匹配已知标记
+  MARKERS.forEach(function(m){
+    if(v.indexOf(m.name) >= 0 || m.name.indexOf(v) >= 0){
+      selectMarker(m.id);
+      found = true;
+    }
+  });
+
+  // 未知点：搜索"江边"、"邮筒"、"07"、"第七站"
+  var keys = ['江边','邮筒','07','7号','七号','第七站'];
+  if(!found && keys.some(function(k){ return v.indexOf(k) >= 0; })){
+    if(!unknownRevealed){
+      unknownRevealed = true;
+      renderMarkers();
+      renderList();
+      updateSeenInfo();
+      statusText.textContent = '已在地图上标出可疑位置。点击问号查看。';
+    }
+    selectMarker('?');
+    found = true;
+  }
+
+  if(!found){
+    statusText.textContent = '未找到与「' + v + '」匹配的地点。';
+  }
+}
+
+/* ==========================================================
+   答案
+   ========================================================== */
+function bindAnswer(){
+  var inp = document.getElementById('answerInput');
+  var btn = document.getElementById('btnSubmit');
+  var msg = document.getElementById('answerMsg');
+
+  if(!inp || !btn) return;
+
+  btn.addEventListener('click', function(){
+    if(solved) return;
+    var v = (inp.value || '').trim();
+    if(!v){
+      msg.className = 'answer-msg err';
+      msg.textContent = '请输入完整地点名。';
+      return;
+    }
+
+    var norm = function(s){
+      return String(s).replace(/[\s\-—_，,。.！!？?、'"“”‘’]/g, '');
+    };
+    var nv = norm(v);
+
+    var ok = FINAL_ANSWERS.some(function(a){
+      var na = norm(a);
+      return nv === na || nv.indexOf(na) >= 0 || na.indexOf(nv) >= 0;
+    });
+
+    if(ok){
+      solved = true;
+      inp.disabled = true;
+      btn.disabled = true;
+      msg.className = 'answer-msg ok';
+      msg.textContent = '核查通过。正在归档 ...';
+      showInfo(UNKNOWN);
+      runFinalProgress();
+    }else{
+      msg.className = 'answer-msg err';
+      msg.textContent = '地点不匹配。请再看看地图上的地名和明信片上的字。';
+    }
+  });
+
+  inp.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); btn.click(); }
+  });
+
+  setTimeout(function(){ inp.focus(); }, 120);
+}
+
+/* ==========================================================
+   最终跳转
+   ========================================================== */
+async function runFinalProgress(){
+  var mask = document.getElementById('mask');
+  var bar  = document.getElementById('bar');
+  var msg  = document.getElementById('dlgMsg');
+
+  mask.classList.add('on');
+  bar.style.width = '0%';
+
+  var steps = [
+    ['正在核对第七站 ...',        28, 600],
+    ['正在写入路线档案 A-173 ...', 58, 680],
+    ['正在载入下一节 ...',        86, 640],
+    ['完成。',                   100, 420]
+  ];
+  for(var i=0;i<steps.length;i++){
+    msg.textContent = steps[i][0];
+    bar.style.width = steps[i][1] + '%';
+    await wait(steps[i][2]);
+  }
+  window.location.href = NEXT_PAGE;
+}
+
+/* ==========================================================
+   启动
+   ========================================================== */
+renderMarkers();
+renderList();
+updateSeenInfo();
+</script>
+</body>
+</html>
